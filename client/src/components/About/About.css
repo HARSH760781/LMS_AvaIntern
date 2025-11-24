@@ -1,0 +1,26 @@
+.about{
+    border: 2px solid red;
+    width: 90%;
+    display: flex;
+    justify-content: center;
+    margin: auto;
+}
+
+.about:hover{
+    transform: scale(1.01);
+}
+.left{
+    width: 30%;
+    border: 2px solid red;
+    padding: 5px;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}
+.right{
+    width: 70%;
+    border: 2px solid red;
+    padding: 10px;
+    align-items: center;
+    font-size: larger;
+}
