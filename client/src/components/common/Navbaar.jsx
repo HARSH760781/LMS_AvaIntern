@@ -82,7 +82,7 @@ const Navbar = () => {
               >
                 <button className="flex items-center space-x-2 p-2 hover:bg-blue-50 rounded-lg">
                   <img
-                    src={`http://localhost:5000/uploads/${profileImage}`}
+                    src={`${serverURL}/uploads/${profileImage}`}
                     className="w-8 h-8 rounded-full object-fill"
                     alt="profile"
                   />

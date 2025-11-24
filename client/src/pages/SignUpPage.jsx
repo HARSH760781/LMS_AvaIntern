@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-// import PhoneInputWithOTP from "./PhoneInputWithOTP";
-import PhoneInputWithOTP from "./PhoneInputWithOTP ";
 
 const SignupPage = () => {
   const [profilePreview, setProfilePreview] = useState(null);
@@ -55,6 +53,7 @@ const SignupPage = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const serverURL = import.meta.env.VITE_BACKEND_URL;
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -71,7 +70,7 @@ const SignupPage = () => {
     formDataToSend.append("phone", formData.phone);
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/register", {
+      const res = await fetch(`${serverURL}/api/auth/register`, {
         method: "POST",
         body: formDataToSend,
       });
