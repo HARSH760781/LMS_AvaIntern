@@ -32,29 +32,10 @@ const courseData = [
 const Hiring = () => {
   const navigate = useNavigate();
 
-  const handleCourseClick = (courseName, route) => {
-    console.log(`Navigating to ${courseName}: ${route}`);
-
-    // You can add any additional logic here before navigation
-    switch (courseName) {
-      case "Aptitude Tests":
-        // Add any specific logic for aptitude tests
-        break;
-      case "Programming Tests":
-        // Add any specific logic for programming tests
-        break;
-      case "Typing Tests":
-        // Add any specific logic for typing tests
-        break;
-      case "Live Tests":
-        // Add any specific logic for live tests
-        break;
-      default:
-        break;
-    }
-
-    // Navigate to the specified route
-    navigate(route);
+  const handleCourseClick = (courseName) => {
+    // Convert course name to URL-friendly format
+    const formattedTitle = courseName.trim().replace(/\s+/g, "-").toLowerCase();
+    navigate(`/course/${formattedTitle}`);
   };
 
   return (
@@ -73,7 +54,7 @@ const Hiring = () => {
           <div
             key={index}
             className="cursor-pointer"
-            onClick={() => handleCourseClick(item.courseName, item.route)}
+            onClick={() => handleCourseClick(item.courseName)}
           >
             <CourseTab imageUrl={item.imageUrl} courseName={item.courseName} />
           </div>

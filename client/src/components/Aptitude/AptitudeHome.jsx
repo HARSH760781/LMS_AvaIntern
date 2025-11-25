@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { BookOpen, ClipboardList } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 // Main Aptitude Page
 export default function AptitudeHome() {
@@ -37,28 +37,57 @@ export default function AptitudeHome() {
 
 // Learn Page
 export function AptitudeLearn() {
-  const topics = [
-    {
-      title: "Percentage Basics",
-      pdf: "/pdfs/percentage.pdf",
-      content:
-        "Learn important concepts, formulas and tricks to solve percentage problems efficiently.",
-    },
-    {
-      title: "Profit & Loss",
-      pdf: "/pdfs/profit-loss.pdf",
-      content:
-        "Understand cost price, selling price, profit/loss formulas and shortcuts.",
-    },
-    {
-      title: "Time & Work",
-      pdf: "/pdfs/time-work.pdf",
-      content:
-        "Learn how to calculate efficiency, total work and work distribution.",
-    },
-  ];
+  const [topics, setTopics] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [openTopic, setOpenTopic] = useState(null);
+  const { courseTitle } = useParams(); // ✅ get course title from URL
+  // console.log(courseTitle);
 
-  const [openTopic, setOpenTopic] = React.useState(null);
+  const serverURL = import.meta.env.VITE_BACKEND_URL;
+
+  useEffect(() => {
+    const fetchTopics = async () => {
+      try {
+        // Fetch only the course with courseTitle=Aptitude
+        const res = await fetch(
+          `${serverURL}/api/learning-material?courseTitle=Aptitude`
+        );
+        const data = await res.json();
+
+        if (data.length > 0) {
+          // Take the topics of the Aptitude course
+          setTopics(data[0].topics || []);
+        } else {
+          setTopics([]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch topics:", err);
+        setTopics([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTopics();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <p className="text-gray-700 text-lg">Loading topics...</p>
+      </div>
+    );
+  }
+
+  if (topics.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <p className="text-gray-700 text-lg">
+          No topics found for Aptitude course.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-8 bg-gradient-to-br from-blue-50 to-indigo-100 flex justify-center">
@@ -67,7 +96,6 @@ export function AptitudeLearn() {
           Aptitude Learning
         </h2>
 
-        {/* Accordion */}
         <div className="space-y-4">
           {topics.map((topic, index) => (
             <div key={index} className="border rounded-xl shadow-sm bg-gray-50">
@@ -76,7 +104,7 @@ export function AptitudeLearn() {
                 onClick={() => setOpenTopic(openTopic === index ? null : index)}
               >
                 <span className="text-lg font-semibold text-gray-800">
-                  {topic.title}
+                  {topic.topicTitle}
                 </span>
                 <span className="text-xl">
                   {openTopic === index ? "−" : "+"}
@@ -85,16 +113,23 @@ export function AptitudeLearn() {
 
               {openTopic === index && (
                 <div className="px-6 pb-4 text-gray-700">
-                  <p className="mb-4">{topic.content}</p>
-
-                  {/* Download PDF Button */}
-                  <a
-                    href={topic.pdf}
-                    download
-                    className="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-all"
-                  >
-                    Download PDF
-                  </a>
+                  {topic.subTopics?.map((sub, subIndex) => (
+                    <div key={subIndex} className="mb-4">
+                      <h3 className="font-medium text-gray-800 mb-2">
+                        {sub.subTopicTitle}
+                      </h3>
+                      {sub.materials?.map((material, mIndex) => (
+                        <a
+                          key={mIndex}
+                          href={material.filePath}
+                          download
+                          className="inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 transition-all mr-2 mb-2"
+                        >
+                          {material.fileName || `PDF ${mIndex + 1}`}
+                        </a>
+                      ))}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -104,7 +139,6 @@ export function AptitudeLearn() {
     </div>
   );
 }
-
 // Practice Page Placeholder (We will build later)
 export function AptitudePractice() {
   return (

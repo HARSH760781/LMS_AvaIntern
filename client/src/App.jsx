@@ -25,6 +25,7 @@ import TypingTest from "./components/Typing/TypingTest";
 import ProgrammingPractice from "./components/Programming/ProgrammingPractice";
 import UploadTest from "./pages/UploadTest";
 import TestList from "./pages/TestList";
+import CoursePage from "./components/common/CoursePage";
 
 function App() {
   const token = localStorage.getItem("token");
@@ -79,14 +80,15 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/live-tests" element={<LiveTests />} />
+          <Route path="/course/live-tests" element={<LiveTests />} />
           <Route path="/start-test/:id" element={<StartTest />} />
-          <Route path="/typing-test" element={<TypingTest />} />
+          <Route path="/course/typing-tests" element={<TypingTest />} />
           <Route path="/programming-test" element={<ProgrammingPractice />} />
           {/* Aptitude Section */}
-          <Route path="/aptitude" element={<AptitudeHome />} />
+          {/* <Route path="/aptitude" element={<AptitudeHome />} />
           <Route path="/aptitude/learn" element={<AptitudeLearn />} />
-          <Route path="/aptitude/practice" element={<AptitudePractice />} />
+          <Route path="/aptitude/practice" element={<AptitudePractice />} /> */}
+          <Route path="/course/:courseTitle" element={<CoursePage />} />
 
           {/* Admin protected routes */}
           <Route element={<ProtectedAdminRoute />}>
