@@ -8,235 +8,430 @@ import {
   FolderOpen,
   BookOpen,
   ArrowLeft,
+  Play,
+  Clock,
+  BarChart3,
+  Target,
   Sparkles,
+  Search,
+  Filter,
+  Users,
 } from "lucide-react";
 
+// ─────────────────────────────────────────
+// MAIN PAGE
+// ─────────────────────────────────────────
 export default function CoursePage() {
   const { courseTitle } = useParams();
   const navigate = useNavigate();
+
   const [topics, setTopics] = useState([]);
+  const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openTopicIndex, setOpenTopicIndex] = useState(null);
-  const [hoveredCard, setHoveredCard] = useState(null);
+  const [activeTab, setActiveTab] = useState("materials");
+
   const serverURL = import.meta.env.VITE_BACKEND_URL;
 
+  // Convert slug → Title Case
+  const prettyTitle = (str) =>
+    str.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+  // ─────────────────────────────────────────
+  // FETCH LEARNING MATERIAL + TESTS
+  // ─────────────────────────────────────────
   useEffect(() => {
-    const fetchTopics = async () => {
+    const fetchData = async () => {
       setLoading(true);
 
       try {
+        // Fetch topics
         const res = await fetch(
           `${serverURL}/api/learning-material?courseTitle=${courseTitle}`
         );
         const data = await res.json();
 
-        // Ensure correct course is returned
         const course = data?.find(
           (c) => c.courseTitle?.toLowerCase() === courseTitle.toLowerCase()
         );
 
         setTopics(course?.topics || []);
+
+        // Fetch tests
+        const testRes = await fetch(
+          `${serverURL}/api/test/testuploads?courseTitle=${courseTitle}`
+        );
+        const testData = await testRes.json();
+
+        setTests(testData || []);
       } catch (err) {
-        console.error(err);
-        setTopics([]);
+        console.log(err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTopics();
+    fetchData();
   }, [courseTitle]);
 
-  if (loading)
+  // ─────────────────────────────────────────
+  // START TEST HANDLER
+  // ─────────────────────────────────────────
+  const handleStartTest = (test) => {
+    navigate(`/test/start/${test._id}`);
+  };
+
+  // ─────────────────────────────────────────
+  // LOADING
+  // ─────────────────────────────────────────
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <div className="relative">
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-spin border-4 border-transparent bg-origin-border bg-clip-border">
-              <div className="absolute inset-1 bg-slate-900 rounded-full"></div>
-            </div>
-            <Sparkles className="w-5 h-5 text-purple-400 absolute -top-1 -right-1 animate-pulse" />
+            <div className="w-16 h-16 border-4 border-blue-100 rounded-full animate-spin border-t-blue-500"></div>
+            <Sparkles className="w-6 h-6 text-blue-500 absolute -top-1 -right-1 animate-pulse" />
           </div>
-          <p className="text-gray-300 text-sm font-light mt-3">
-            Loading course content...
+          <p className="text-gray-600 mt-4 font-medium">
+            Loading Course Content
           </p>
         </div>
       </div>
     );
+  }
 
-  if (topics.length === 0)
+  // ─────────────────────────────────────────
+  // NO CONTENT
+  // ─────────────────────────────────────────
+  if (topics.length === 0 && tests.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6">
-          <div className="relative mb-4">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500/20 to-purple-600/20 rounded-2xl backdrop-blur-sm border border-white/10 mx-auto flex items-center justify-center">
-              <BookOpen className="w-8 h-8 text-gray-400" />
-            </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <div className="w-20 h-20 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-6">
+            <BookOpen className="w-10 h-10 text-gray-400" />
           </div>
-          <h2 className="text-lg font-semibold text-white mb-1">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
             No Content Available
           </h2>
-          <p className="text-gray-400 text-sm mb-4">
-            No learning materials found for{" "}
-            <strong className="text-gray-300">
-              {courseTitle.replace(/-/g, " ")}
-            </strong>
-            .
+          <p className="text-gray-600 mb-6">
+            No learning materials or tests found for{" "}
+            <strong>{prettyTitle(courseTitle)}</strong>
           </p>
           <button
             onClick={() => navigate(-1)}
-            className="px-5 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white text-sm font-medium transition-all duration-300 backdrop-blur-sm"
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg"
           >
-            Go Back
+            Back to Courses
           </button>
         </div>
       </div>
     );
-
-  const toTitleCase = (str) => {
-    return str
-      .replace(/-/g, " ") // replace dashes with spaces
-      .split(" ")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(" ");
-  };
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-      {/* Background glow elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl animate-pulse delay-500"></div>
-      </div>
-
-      <div className="relative z-10 py-6 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="mb-4 text-center">
-            {/* Back Button */}
-            <button
-              onClick={() => navigate(-1)}
-              className="inline-flex items-center space-x-1 px-2 py-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md text-gray-300 hover:text-white text-xs font-medium transition-all duration-300 backdrop-blur-sm"
-            >
-              <ArrowLeft className="w-3 h-3" />
-              <span>Back</span>
-            </button>
-
-            {/* Course Title */}
-            <h1 className="mt-3 text-2xl sm:text-3xl font-bold text-white">
-              {toTitleCase(courseTitle)}
-            </h1>
-            <p className="text-gray-400 text-sm mt-1">
-              Explore interactive learning materials
-            </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => navigate(-1)}
+                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span className="font-medium">Back</span>
+              </button>
+              <div className="w-1 h-8 bg-gray-200 rounded-full"></div>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {prettyTitle(courseTitle)}
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  Master your skills with comprehensive learning materials and
+                  assessments
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-4 text-sm text-gray-600">
+                <div className="flex items-center space-x-1">
+                  <FolderOpen className="w-4 h-4" />
+                  <span>{topics.length} Topics</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <BookOpen className="w-4 h-4" />
+                  <span>{tests.length} Tests</span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Topics Accordion */}
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
+            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-100 text-sm">Total Materials</p>
+                  <p className="text-2xl font-bold mt-1">
+                    {topics.reduce(
+                      (acc, topic) => acc + (topic.subTopics?.length || 0),
+                      0
+                    )}
+                  </p>
+                </div>
+                <FileText className="w-8 h-8 opacity-80" />
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-100 text-sm">Available Tests</p>
+                  <p className="text-2xl font-bold mt-1">{tests.length}</p>
+                </div>
+                <Target className="w-8 h-8 opacity-80" />
+              </div>
+            </div>
+
+            {/* <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-100 text-sm">Total Duration</p>
+                  <p className="text-2xl font-bold mt-1">
+                    {tests.reduce((acc, test) => acc + (test.duration || 0), 0)}{" "}
+                    min
+                  </p>
+                </div>
+                <Clock className="w-8 h-8 opacity-80" />
+              </div>
+            </div> */}
+
+            {/* <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-orange-100 text-sm">Questions</p>
+                  <p className="text-2xl font-bold mt-1">
+                    {tests.reduce(
+                      (acc, test) => acc + (test.totalQuestions || 0),
+                      0
+                    )}
+                  </p>
+                </div>
+                <BarChart3 className="w-8 h-8 opacity-80" />
+              </div>
+            </div> */}
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Tab Navigation */}
+        <div className="flex space-x-1 bg-white rounded-2xl p-2 shadow-sm border border-gray-200 mb-8">
+          <button
+            onClick={() => setActiveTab("materials")}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+              activeTab === "materials"
+                ? "bg-blue-600 text-white shadow-lg"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            <FolderOpen className="w-5 h-5" />
+            <span>Learning Materials</span>
+          </button>
+          <button
+            onClick={() => setActiveTab("tests")}
+            className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+              activeTab === "tests"
+                ? "bg-green-600 text-white shadow-lg"
+                : "text-gray-600 hover:text-gray-900"
+            }`}
+          >
+            <BookOpen className="w-5 h-5" />
+            <span>Assessment Tests</span>
+            {tests.length > 0 && (
+              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                {tests.length}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Materials Tab */}
+        {activeTab === "materials" && (
           <div className="space-y-4">
             {topics.map((topic, idx) => (
               <div
                 key={idx}
-                className="relative group"
-                onMouseEnter={() => setHoveredCard(idx)}
-                onMouseLeave={() => setHoveredCard(null)}
+                className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 overflow-hidden"
               >
-                {/* Glow effect */}
-                <div
-                  className={`absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-600/20 rounded-xl blur-xl transition-all duration-500 ${
-                    hoveredCard === idx
-                      ? "opacity-100 scale-105"
-                      : "opacity-0 scale-100"
-                  }`}
-                ></div>
-
-                <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl border border-gray-700 backdrop-blur-sm shadow-lg overflow-hidden transition-all duration-500 hover:border-gray-600 hover:shadow-lg hover:scale-[1.02]">
-                  {/* Topic Header */}
-                  <button
-                    className="w-full flex justify-between items-center px-4 py-3 text-left hover:bg-white/5 transition-all duration-300"
-                    onClick={() =>
-                      setOpenTopicIndex(openTopicIndex === idx ? null : idx)
-                    }
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div className="relative">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow">
-                          <FolderOpen className="w-5 h-5 text-white" />
-                        </div>
-                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-gray-900 flex items-center justify-center">
-                          <span className="text-xs font-bold text-gray-900">
-                            {topic.subTopics?.length || 0}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-left">
-                        <h3 className="text-md font-semibold text-white">
-                          {topic.topicTitle}
-                        </h3>
-                        <p className="text-gray-400 text-xs mt-0.5">
-                          {topic.subTopics?.length || 0} sub-topics
-                        </p>
-                      </div>
+                <button
+                  className="w-full flex justify-between items-center p-6 text-left hover:bg-gray-50 transition-colors duration-200"
+                  onClick={() =>
+                    setOpenTopicIndex(openTopicIndex === idx ? null : idx)
+                  }
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <FolderOpen className="w-6 h-6 text-white" />
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-6 h-6 bg-gray-700 rounded-md flex items-center justify-center group-hover:bg-gray-600 transition-colors">
-                        {openTopicIndex === idx ? (
-                          <ChevronUp className="w-4 h-4 text-gray-300" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 text-gray-300" />
-                        )}
-                      </div>
+                    <div>
+                      <h3 className="text-xl font-semibold text-gray-900">
+                        {topic.topicTitle}
+                      </h3>
+                      <p className="text-gray-600 mt-1">
+                        {topic.subTopics?.length || 0} sub-topics • Click to
+                        expand
+                      </p>
                     </div>
-                  </button>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <span className="text-sm text-gray-500">
+                      {openTopicIndex === idx ? "Collapse" : "Expand"}
+                    </span>
+                    {openTopicIndex === idx ? (
+                      <ChevronUp className="w-5 h-5 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-400" />
+                    )}
+                  </div>
+                </button>
 
-                  {/* Accordion Content */}
-                  {openTopicIndex === idx && (
-                    <div className="border-t border-gray-700 bg-gradient-to-br from-gray-800/50 to-gray-900/50 p-2">
-                      <div className="space-y-2">
-                        {topic.subTopics?.map((sub, subIdx) => (
-                          <div
-                            key={subIdx}
-                            className="bg-gradient-to-br from-gray-700/20 to-gray-800/20 rounded-md border border-gray-600 p-2 hover:border-gray-500 transition-all duration-200"
-                          >
-                            <h4 className="font-medium text-white flex items-center text-sm">
-                              <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded flex items-center justify-center mr-2">
-                                <FileText className="w-3 h-3 text-white" />
-                              </div>
-                              {sub.subTopicTitle}
-                            </h4>
+                {openTopicIndex === idx && (
+                  <div className="border-t border-gray-200 bg-gray-50">
+                    <div className="p-6 space-y-4">
+                      {topic.subTopics?.map((sub, subIdx) => (
+                        <div
+                          key={subIdx}
+                          className="bg-white rounded-xl border border-gray-200 p-5 hover:border-blue-300 transition-all duration-200"
+                        >
+                          <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
+                            <FileText className="w-5 h-5 text-blue-600 mr-3" />
+                            {sub.subTopicTitle}
+                          </h4>
 
-                            {sub.materials?.length > 0 ? (
-                              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-1">
-                                {sub.materials.map((material, mIdx) => (
-                                  <a
-                                    key={mIdx}
-                                    href={material.filePath}
-                                    download
-                                    className="group relative bg-gray-700/20 hover:bg-blue-500/20 rounded-md border border-gray-600 hover:border-blue-400 p-2 text-xs text-gray-300 font-medium flex items-center justify-between transition-all duration-200"
-                                  >
-                                    <span className="truncate">
+                          {sub.materials?.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                              {sub.materials.map((material, mIdx) => (
+                                <a
+                                  key={mIdx}
+                                  href={material.filePath}
+                                  download
+                                  className="group flex items-center justify-between p-4 bg-gray-50 hover:bg-blue-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-all duration-200"
+                                >
+                                  <div className="flex items-center space-x-3 min-w-0 flex-1">
+                                    <FileText className="w-4 h-4 text-gray-400 group-hover:text-blue-600 flex-shrink-0" />
+                                    <span className="text-sm text-gray-700 group-hover:text-blue-900 truncate font-medium">
                                       {material.fileName ||
                                         `Material ${mIdx + 1}`}
                                     </span>
-                                    <Download className="w-3 h-3 text-gray-400 group-hover:text-white ml-2" />
-                                  </a>
-                                ))}
-                              </div>
-                            ) : (
-                              <p className="text-gray-400 text-xs italic mt-1">
-                                No materials available
+                                  </div>
+                                  <Download className="w-4 h-4 text-gray-400 group-hover:text-blue-600 flex-shrink-0 ml-2" />
+                                </a>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-center py-6">
+                              <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                              <p className="text-gray-500 text-sm">
+                                No materials available for this sub-topic
                               </p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                  )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Tests Tab */}
+        {activeTab === "tests" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {tests.map((test, idx) => (
+              <div
+                key={idx}
+                className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden group"
+              >
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                      <BookOpen className="w-6 h-6 text-white" />
+                    </div>
+                    {/* <div className="bg-green-100 text-green-800 text-xs font-medium px-3 py-1 rounded-full capitalize">
+                      {test.difficultyLevel}
+                    </div> */}
+                  </div>
+
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                    {test.testTitle}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                    {test.testDescription}
+                  </p>
+
+                  <div className="space-y-2 mb-6">
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                      <span>Topic</span>
+                      <span className="font-medium text-gray-900">
+                        {test.topic}
+                      </span>
+                    </div>
+                    {/* <div className="flex items-center justify-between text-sm text-gray-600">
+                      <span>Questions</span>
+                      <span className="font-medium text-gray-900">
+                        {test.totalQuestions}
+                      </span>
+                    </div> */}
+                    <div className="flex items-center justify-between text-sm text-gray-600">
+                      <span>Duration</span>
+                      <span className="font-medium text-gray-900">
+                        {test.duration} min
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => handleStartTest(test)}
+                    className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-semibold transition-all duration-200 hover:shadow-lg flex items-center justify-center space-x-2 group-hover:scale-105"
+                  >
+                    <Play className="w-5 h-5" />
+                    <span>Start Test</span>
+                  </button>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        )}
+
+        {/* Empty States */}
+        {activeTab === "materials" && topics.length === 0 && (
+          <div className="text-center py-12">
+            <FolderOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              No Learning Materials
+            </h3>
+            <p className="text-gray-600">
+              No study materials available for this course yet.
+            </p>
+          </div>
+        )}
+
+        {activeTab === "tests" && tests.length === 0 && (
+          <div className="text-center py-12">
+            <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              No Tests Available
+            </h3>
+            <p className="text-gray-600">
+              No assessment tests available for this course yet.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

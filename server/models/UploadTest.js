@@ -43,6 +43,10 @@ const testUploadSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    totalQuestion: {
+      type: Number,
+      trim: true,
+    },
     duration: {
       type: Number,
       required: true,
