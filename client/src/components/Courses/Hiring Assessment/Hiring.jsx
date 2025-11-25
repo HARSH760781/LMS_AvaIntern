@@ -8,19 +8,19 @@ const courseData = [
     imageUrl:
       "https://ik.imagekit.io/y7csnuuzj/Icons/APTITUDE.png?updatedAt=1763706236262",
     courseName: "Aptitude Tests",
-    route: "/aptitude-tests", // Add your actual route here
+    route: "/aptitude", // Add your actual route here
   },
   {
     imageUrl:
       "https://ik.imagekit.io/y7csnuuzj/Icons/pROGRAMMING.png?updatedAt=1763706236186",
     courseName: "Programming Tests",
-    route: "/programming-tests", // Add your actual route here
+    route: "/programming-test", // Add your actual route here
   },
   {
     imageUrl:
       "https://ik.imagekit.io/y7csnuuzj/Icons/tYPING.png?updatedAt=1763706236099",
     courseName: "Typing Tests",
-    route: "/typing-tests", // Add your actual route here
+    route: "/typing-test", // Add your actual route here
   },
   {
     imageUrl: "https://ik.imagekit.io/y7csnuuzj/Icons/Test.png",

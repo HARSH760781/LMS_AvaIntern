@@ -419,7 +419,7 @@ const AdminDashboard = () => {
                   </div>
                   <p className="font-medium text-white text-sm mb-1">Test</p>
                   <p className="text-xs text-gray-300 group-hover:text-gray-200">
-                    Upload & manage tests
+                    Upload Tests for College
                   </p>
                 </div>
 
@@ -451,6 +451,22 @@ const AdminDashboard = () => {
                   </p>
                   <p className="text-xs text-gray-300 group-hover:text-gray-200">
                     View user Result
+                  </p>
+                </div>
+                {/* Upload Test Based on Topic */}
+                {/* Test */}
+                <div
+                  onClick={() => navigate("/upload-options")}
+                  className="bg-gray-800 bg-opacity-50 rounded-xl p-4 cursor-pointer transition-all duration-300 hover:bg-gray-700 hover:scale-105 group border border-gray-600 text-center"
+                >
+                  <div className="w-12 h-12 bg-orange-500 bg-opacity-20 rounded-lg flex items-center justify-center mx-auto mb-3 border border-yellow-400 border-opacity-30 group-hover:bg-yellow-500 group-hover:bg-opacity-30 transition-colors">
+                    <TestTube className="w-6 h-6 text-yellow-300 group-hover:text-white" />
+                  </div>
+                  <p className="font-medium text-white text-sm mb-1">
+                    Upload Test
+                  </p>
+                  <p className="text-xs text-gray-300 group-hover:text-gray-200">
+                    Upload Test for Topic
                   </p>
                 </div>
               </div>

@@ -11,9 +11,20 @@ import Feedback from "./components/Admin/Feedback";
 import TestUploader from "./components/Admin/TestManager";
 import { Toaster } from "react-hot-toast";
 import LiveTests from "./components/Courses/Live Test/LiveTests";
+import UploadOptions from "./pages/UploadOptions";
+import UploadLearningMaterial from "./components/Admin/UploadLearningMaterial";
+
+import AptitudeHome, {
+  AptitudeLearn,
+  AptitudePractice,
+} from "./components/Aptitude/AptitudeHome";
 import StartTest from "./components/Courses/Live Test/StartTest";
 import AdminResults from "./pages/AdminResults";
 import NotFound from "./pages/NotFound";
+import TypingTest from "./components/Typing/TypingTest";
+import ProgrammingPractice from "./components/Programming/ProgrammingPractice";
+import UploadTest from "./pages/UploadTest";
+import TestList from "./pages/TestList";
 
 function App() {
   const token = localStorage.getItem("token");
@@ -70,6 +81,13 @@ function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/live-tests" element={<LiveTests />} />
           <Route path="/start-test/:id" element={<StartTest />} />
+          <Route path="/typing-test" element={<TypingTest />} />
+          <Route path="/programming-test" element={<ProgrammingPractice />} />
+          {/* Aptitude Section */}
+          <Route path="/aptitude" element={<AptitudeHome />} />
+          <Route path="/aptitude/learn" element={<AptitudeLearn />} />
+          <Route path="/aptitude/practice" element={<AptitudePractice />} />
+
           {/* Admin protected routes */}
           <Route element={<ProtectedAdminRoute />}>
             <Route path="/admin" element={<AdminDashboard />} />
@@ -77,6 +95,13 @@ function App() {
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/test" element={<TestUploader />} />
             <Route path="/admin/results" element={<AdminResults />} />
+            <Route path="/upload-test" element={<UploadTest />} />
+            <Route path="/tests" element={<TestList />} />
+            <Route path="/upload-options" element={<UploadOptions />} />
+            <Route
+              path="/upload-learning-material"
+              element={<UploadLearningMaterial />}
+            />
           </Route>
           {/* 404 Route (catch-all) */}
           <Route path="*" element={<NotFound />} />
