@@ -3,6 +3,7 @@ import { Upload, FileText, Loader2, Trash2, Plus } from "lucide-react";
 import toast from "react-hot-toast";
 
 const UploadLearningMaterial = () => {
+  const [selectedCategory, setSelectedCategory] = useState("");
   const [courseTitle, setCourseTitle] = useState("");
   const [topics, setTopics] = useState([
     {
@@ -14,6 +15,39 @@ const UploadLearningMaterial = () => {
   const [loading, setLoading] = useState(false);
 
   const serverURL = import.meta.env.VITE_BACKEND_URL;
+
+  const CATEGORIES = {
+    "Hiring Assessments": ["aptitude-tests"],
+
+    "CRT Modules": [
+      "quantitative-aptitude",
+      "logical-reasoning",
+      "competitive-programming",
+      "interview-skills",
+    ],
+
+    "Learning Tracks": [
+      "c",
+      "cpp",
+      "python",
+      "java",
+      "html",
+      "javascript",
+      "sql",
+      "mongodb",
+      "data-structure",
+      "algorithms",
+      "advance-java",
+      "advance-python",
+      "mern-fullstack",
+      "java-fullstack",
+      "python-fullstack",
+    ],
+
+    "Competitive Coding": ["c++", "java", "python"],
+
+    "Company Mocks": ["company-mocks"],
+  };
 
   const handleTopicChange = (topicIndex, field, value) => {
     const updated = [...topics];
@@ -92,7 +126,7 @@ const UploadLearningMaterial = () => {
 
       toast.success("Learning material uploaded successfully!");
 
-      // ✅ Reset courseTitle and topics
+      // Reset
       setCourseTitle("");
       setTopics([
         {
@@ -102,7 +136,6 @@ const UploadLearningMaterial = () => {
         },
       ]);
 
-      // ✅ Reset file input values by resetting the form itself
       e.target.reset();
     } catch (err) {
       toast.error(err.message || "Upload failed!");
@@ -118,14 +151,47 @@ const UploadLearningMaterial = () => {
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-8">
-        <input
-          type="text"
-          placeholder="Course Title"
+        {/* Course Title Dropdown */}
+        <select
+          value={selectedCategory}
+          onChange={(e) => {
+            setSelectedCategory(e.target.value);
+            setCourseTitle(""); // reset course when category changes
+          }}
+          required
+          className="w-full p-4 rounded-xl bg-gray-800 border border-gray-700 text-white
+             focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg font-medium"
+        >
+          <option value="">Select Category</option>
+
+          {Object.keys(CATEGORIES).map((cat, idx) => (
+            <option key={idx} value={cat}>
+              {cat}
+            </option>
+          ))}
+        </select>
+
+        {/* Course Title Dropdown */}
+        <select
           value={courseTitle}
           onChange={(e) => setCourseTitle(e.target.value)}
           required
-          className="w-full p-4 rounded-xl bg-gray-800 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg font-medium"
-        />
+          disabled={!selectedCategory}
+          className={`w-full p-4 rounded-xl bg-gray-800 border border-gray-700 text-white
+             focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg font-medium 
+             ${!selectedCategory ? "opacity-50 cursor-not-allowed" : ""}`}
+        >
+          <option value="">Select Course Title</option>
+
+          {selectedCategory &&
+            CATEGORIES[selectedCategory].map((course, idx) => (
+              <option key={idx} value={course}>
+                {course
+                  .replace(/-/g, " ")
+                  .replace(/\b\w/g, (c) => c.toUpperCase())}
+              </option>
+            ))}
+        </select>
 
         {topics.map((topic, tIndex) => (
           <div
@@ -151,7 +217,8 @@ const UploadLearningMaterial = () => {
                   handleTopicChange(tIndex, "topicTitle", e.target.value)
                 }
                 required
-                className="flex-1 p-3 rounded-lg bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                className="flex-1 p-3 rounded-lg bg-gray-900 border border-gray-700 text-white placeholder-gray-400 
+                           focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
               />
               <input
                 type="text"
@@ -161,7 +228,8 @@ const UploadLearningMaterial = () => {
                   handleTopicChange(tIndex, "topicKey", e.target.value)
                 }
                 required
-                className="flex-1 p-3 rounded-lg bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                className="flex-1 p-3 rounded-lg bg-gray-900 border border-gray-700 text-white placeholder-gray-400 
+                           focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
               />
             </div>
 
@@ -193,7 +261,8 @@ const UploadLearningMaterial = () => {
                       )
                     }
                     required
-                    className="w-full p-3 rounded-lg bg-gray-900 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
+                    className="w-full p-3 rounded-lg bg-gray-900 border border-gray-700 text-white placeholder-gray-400 
+                               focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium"
                   />
 
                   <label className="flex items-center gap-3 p-3 border-2 border-dashed border-blue-500 rounded-lg cursor-pointer hover:bg-blue-800 transition">

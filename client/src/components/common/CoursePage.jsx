@@ -13,10 +13,14 @@ import {
   Sparkles,
 } from "lucide-react";
 import PdfViewer from "../common/PdfViewer";
+import { courseCategories } from "./courseMapping";
 
 export default function CoursePage() {
   const { courseTitle } = useParams();
   const navigate = useNavigate();
+
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCourse, setSelectedCourse] = useState("");
 
   const [completedMaterials, setCompletedMaterials] = useState({});
   const [topics, setTopics] = useState([]);
@@ -425,52 +429,74 @@ export default function CoursePage() {
 
         {/* Tests */}
         {activeTab === "tests" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tests.map((test, idx) => (
-              <div
-                key={idx}
-                className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden group"
-              >
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                      <BookOpen className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-                    {test.testTitle}
-                  </h3>
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                    {test.testDescription}
-                  </p>
-
-                  <div className="space-y-2 mb-6">
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <span>Topic</span>
-                      <span className="font-medium text-gray-900">
-                        {test.topic}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm text-gray-600">
-                      <span>Duration</span>
-                      <span className="font-medium text-gray-900">
-                        {test.duration} min
-                      </span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => handleStartTest(test)}
-                    className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-semibold transition-all duration-200 hover:shadow-lg flex items-center justify-center space-x-2 group-hover:scale-105"
-                  >
-                    <Play className="w-5 h-5" />
-                    <span>Start Test</span>
-                  </button>
+          <>
+            {tests.length === 0 ? (
+              <div className="w-full py-20 flex flex-col items-center justify-center bg-white rounded-2xl shadow-sm border border-gray-200">
+                <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
+                  <BookOpen className="w-10 h-10 text-gray-400" />
                 </div>
+
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                  No Tests Available
+                </h2>
+
+                <p className="text-gray-600 text-center max-w-md">
+                  No tests have been added for this course yet.
+                  <br />
+                  <span className="font-semibold text-gray-700">
+                    Coming Soon...
+                  </span>
+                </p>
               </div>
-            ))}
-          </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {tests.map((test, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden group"
+                  >
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                          <BookOpen className="w-6 h-6 text-white" />
+                        </div>
+                      </div>
+
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                        {test.testTitle}
+                      </h3>
+                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                        {test.testDescription}
+                      </p>
+
+                      <div className="space-y-2 mb-6">
+                        <div className="flex items-center justify-between text-sm text-gray-600">
+                          <span>Topic</span>
+                          <span className="font-medium text-gray-900">
+                            {test.topic}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm text-gray-600">
+                          <span>Duration</span>
+                          <span className="font-medium text-gray-900">
+                            {test.duration} min
+                          </span>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleStartTest(test)}
+                        className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-semibold transition-all duration-200 hover:shadow-lg flex items-center justify-center space-x-2 group-hover:scale-105"
+                      >
+                        <Play className="w-5 h-5" />
+                        <span>Start Test</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 

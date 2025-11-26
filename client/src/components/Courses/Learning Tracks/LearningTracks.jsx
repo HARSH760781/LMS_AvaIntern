@@ -89,6 +89,7 @@ const LearningTracks = () => {
             key={index}
             imageUrl={item.imageUrl}
             courseName={item.courseName}
+            category="Learning Tracks"
           />
         ))}
       </div>
@@ -103,6 +104,7 @@ const LearningTracks = () => {
             key={index}
             imageUrl={item.imageUrl}
             courseName={item.courseName}
+            category="Learning Tracks"
           />
         ))}
       </div>
@@ -117,6 +119,7 @@ const LearningTracks = () => {
             key={index}
             imageUrl={item.imageUrl}
             courseName={item.courseName}
+            category="Learning Tracks"
           />
         ))}
       </div>

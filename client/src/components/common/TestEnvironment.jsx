@@ -237,33 +237,33 @@ const TestEnvironment = () => {
       </div>
     );
   }
-
-  // ----------------------- Render Start Test Button -----------------------
   if (!started) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-gray-100">
-        <div className="text-center p-6 bg-white rounded-xl shadow-lg">
-          <BookOpen className="w-12 h-12 mx-auto text-blue-600 mb-4" />
-          <h2 className="text-xl font-bold mb-4">
-            {toProperCase(testData.testTitle)}
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Topic: {toProperCase(testData.topic)}
-          </p>
-          <button
-            onClick={handleStartTest}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
-          >
-            Start Test
-          </button>
-        </div>
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-white">
+        <BookOpen className="w-16 h-16 text-blue-600 mb-4" />
+
+        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+          {toProperCase(testData.testTitle)}
+        </h2>
+
+        <p className="text-lg text-gray-600 mb-6">
+          Topic: {toProperCase(testData.topic)}
+        </p>
+
+        <button
+          onClick={handleStartTest}
+          className="px-8 py-3 bg-blue-600 text-white rounded-lg text-lg 
+        font-medium hover:bg-blue-700 transition"
+        >
+          Start Test
+        </button>
       </div>
     );
   }
 
   // ----------------------- Main Test UI -----------------------
   const currentQ = questions[currentQuestion];
-
+  // if (!started) {
   return (
     <div className="h-screen w-screen flex flex-col bg-gray-50 text-sm z-[999]">
       {/* Header */}
@@ -485,5 +485,6 @@ const TestEnvironment = () => {
     </div>
   );
 };
+// };
 
 export default TestEnvironment;

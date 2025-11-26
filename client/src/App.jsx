@@ -23,6 +23,7 @@ import TestList from "./pages/TestList";
 import CoursePage from "./components/common/CoursePage";
 import TestEnvironment from "./components/common/TestEnvironment";
 import NotFound from "./pages/NotFound";
+import LearningEnvironment from "./components/common/LearningEnvironment";
 import { Toaster } from "react-hot-toast";
 
 function App() {
@@ -84,6 +85,10 @@ function App() {
           <Route path="/programming-test" element={<ProgrammingPractice />} />
           <Route path="/test/start/:testId" element={<TestEnvironment />} />
           <Route path="/course/:courseTitle" element={<CoursePage />} />
+          <Route
+            path="/course/:category/:courseTitle"
+            element={<LearningEnvironment />}
+          />
 
           {/* Admin protected routes */}
           <Route element={<ProtectedAdminRoute />}>
