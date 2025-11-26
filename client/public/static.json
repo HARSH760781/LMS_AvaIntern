@@ -1,7 +1,19 @@
 {
-  "root": "dist/",
-  "clean_urls": true,
-  "routes": {
-    "/**": "/index.html"
-  }
+  "headers": [
+    {
+      "source": "**/*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "**",
+      "destination": "/index.html"
+    }
+  ]
 }
