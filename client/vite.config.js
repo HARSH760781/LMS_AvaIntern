@@ -2,12 +2,19 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  optimizeDeps: {
+    include: ["xlsx"],
+  },
+  build: {
+    commonjsOptions: {
+      include: [/xlsx/, /node_modules/],
+    },
+  },
   server: {
-    host: true, // allow network access
-    port: 5173, // your dev server port
+    host: true,
+    port: 5173,
     allowedHosts: [".ngrok-free.app"],
   },
 });

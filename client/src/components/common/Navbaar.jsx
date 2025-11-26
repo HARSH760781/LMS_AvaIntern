@@ -10,7 +10,7 @@ import {
   Shield,
 } from "lucide-react";
 
-const Navbar = () => {
+const Navbar = ({ hide }) => {
   const navigate = useNavigate();
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -45,7 +45,11 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
+    <nav
+      className={`bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50 transition-all duration-300 ${
+        hide ? "opacity-0 pointer-events-none h-0" : "opacity-100 h-16"
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}

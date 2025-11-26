@@ -43,4 +43,37 @@ router.get("/testuploads", async (req, res) => {
   }
 });
 
+// routes/testUploadRoute.js - Update the single test endpoint
+router.get("/single/:id", async (req, res) => {
+  try {
+    const test = await UploadTest.findById(req.params.id);
+
+    if (!test) {
+      return res.status(404).json({ message: "Test not found" });
+    }
+
+    // Transform data to match frontend expectations
+
+    const transformedTest = {
+      _id: test._id,
+      testTitle: test.testTitle || test.testName,
+      testDescription: test.testDescription || test.description,
+      topic: test.topic,
+      duration: test.duration,
+      totalQuestions: test.totalQuestions || test.totalQuestion,
+      difficultyLevel: test.difficultyLevel,
+      files: test.files || [],
+      // Include any question data that might be stored directly
+      questions: test.questions || [],
+      questionData: test.questionData || [],
+    };
+
+    console.log("Sending test data with fields:", Object.keys(transformedTest));
+    res.json(transformedTest);
+  } catch (error) {
+    console.error("Error fetching test:", error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+});
+
 export default router;

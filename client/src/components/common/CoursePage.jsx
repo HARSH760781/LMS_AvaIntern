@@ -1,89 +1,103 @@
+// src/pages/CoursePage.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ChevronDown,
   ChevronUp,
-  Download,
   FileText,
   FolderOpen,
   BookOpen,
   ArrowLeft,
   Play,
-  Clock,
-  BarChart3,
   Target,
   Sparkles,
-  Search,
-  Filter,
-  Users,
 } from "lucide-react";
+import PdfViewer from "../common/PdfViewer";
 
-// ─────────────────────────────────────────
-// MAIN PAGE
-// ─────────────────────────────────────────
 export default function CoursePage() {
   const { courseTitle } = useParams();
   const navigate = useNavigate();
 
+  const [completedMaterials, setCompletedMaterials] = useState({});
   const [topics, setTopics] = useState([]);
   const [tests, setTests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openTopicIndex, setOpenTopicIndex] = useState(null);
   const [activeTab, setActiveTab] = useState("materials");
+  const [currentMaterial, setCurrentMaterial] = useState(null);
 
   const serverURL = import.meta.env.VITE_BACKEND_URL;
 
-  // Convert slug → Title Case
   const prettyTitle = (str) =>
     str.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
-  // ─────────────────────────────────────────
-  // FETCH LEARNING MATERIAL + TESTS
-  // ─────────────────────────────────────────
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-
       try {
-        // Fetch topics
         const res = await fetch(
           `${serverURL}/api/learning-material?courseTitle=${courseTitle}`
         );
         const data = await res.json();
-
         const course = data?.find(
           (c) => c.courseTitle?.toLowerCase() === courseTitle.toLowerCase()
         );
-
         setTopics(course?.topics || []);
 
-        // Fetch tests
         const testRes = await fetch(
           `${serverURL}/api/test/testuploads?courseTitle=${courseTitle}`
         );
         const testData = await testRes.json();
-
         setTests(testData || []);
       } catch (err) {
-        console.log(err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
-  }, [courseTitle]);
+  }, [courseTitle, serverURL]);
 
-  // ─────────────────────────────────────────
-  // START TEST HANDLER
-  // ─────────────────────────────────────────
+  // In CoursePage.jsx - Update the handleStartTest function
   const handleStartTest = (test) => {
-    navigate(`/test/start/${test._id}`);
+    // console.log("Starting test:", test._id);
+    navigate(`/test/start/${test._id}`); // Use the correct route
   };
 
-  // ─────────────────────────────────────────
-  // LOADING
-  // ─────────────────────────────────────────
+  const handlePdfView = (material) => {
+    if (material?.filePath) setCurrentMaterial(material);
+    else alert("File not available.");
+    console.log(currentMaterial);
+  };
+
+  const totalMaterials = topics.reduce(
+    (acc, topic) =>
+      acc +
+      (topic.subTopics?.reduce(
+        (subAcc, sub) => subAcc + (sub.materials?.length || 0),
+        0
+      ) || 0),
+    0
+  );
+
+  // Count completed
+  const completedCount =
+    Object.values(completedMaterials).filter(Boolean).length;
+
+  // Calculate percentage
+  const progressPercent =
+    totalMaterials === 0
+      ? 0
+      : Math.round((completedCount / totalMaterials) * 100);
+
+  // Mark material completed
+  const handleCompleteMaterial = (id) => {
+    setCompletedMaterials((prev) => ({
+      ...prev,
+      [id]: !prev[id], // toggle complete/uncomplete
+    }));
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
@@ -100,9 +114,6 @@ export default function CoursePage() {
     );
   }
 
-  // ─────────────────────────────────────────
-  // NO CONTENT
-  // ─────────────────────────────────────────
   if (topics.length === 0 && tests.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
@@ -142,12 +153,12 @@ export default function CoursePage() {
                 <ArrowLeft className="w-5 h-5" />
                 <span className="font-medium">Back</span>
               </button>
-              <div className="w-1 h-8 bg-gray-200 rounded-full"></div>
+              <div className="w-1 h-8 m-2  bg-gray-200 rounded-full"></div>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-3xl font-bold text-gray-900 mx-2">
                   {prettyTitle(courseTitle)}
                 </h1>
-                <p className="text-gray-600 mt-1">
+                <p className="text-gray-600 mt-1 mx-2">
                   Master your skills with comprehensive learning materials and
                   assessments
                 </p>
@@ -175,7 +186,13 @@ export default function CoursePage() {
                   <p className="text-blue-100 text-sm">Total Materials</p>
                   <p className="text-2xl font-bold mt-1">
                     {topics.reduce(
-                      (acc, topic) => acc + (topic.subTopics?.length || 0),
+                      (acc, topic) =>
+                        acc +
+                        (topic.subTopics?.reduce(
+                          (subAcc, sub) =>
+                            subAcc + (sub.materials?.length || 0),
+                          0
+                        ) || 0),
                       0
                     )}
                   </p>
@@ -193,41 +210,42 @@ export default function CoursePage() {
                 <Target className="w-8 h-8 opacity-80" />
               </div>
             </div>
-
-            {/* <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl p-4 text-white">
+            {/* Progress Card */}
+            <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl p-4 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-100 text-sm">Total Duration</p>
-                  <p className="text-2xl font-bold mt-1">
-                    {tests.reduce((acc, test) => acc + (test.duration || 0), 0)}{" "}
-                    min
-                  </p>
+                  <p className="text-purple-100 text-sm">Your Progress</p>
+                  <p className="text-2xl font-bold mt-1">{progressPercent}%</p>
                 </div>
-                <Clock className="w-8 h-8 opacity-80" />
+                <Sparkles className="w-8 h-8 opacity-80" />
               </div>
-            </div> */}
 
-            {/* <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-4 text-white">
+              {/* Progress bar */}
+              <div className="w-full bg-purple-300 h-2 rounded-full mt-3">
+                <div
+                  className="h-2 rounded-full bg-white"
+                  style={{ width: `${progressPercent}%` }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Completed Count */}
+            <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-2xl p-4 text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-orange-100 text-sm">Questions</p>
-                  <p className="text-2xl font-bold mt-1">
-                    {tests.reduce(
-                      (acc, test) => acc + (test.totalQuestions || 0),
-                      0
-                    )}
-                  </p>
+                  <p className="text-yellow-100 text-sm">Completed Materials</p>
+                  <p className="text-2xl font-bold mt-1">{completedCount}</p>
                 </div>
-                <BarChart3 className="w-8 h-8 opacity-80" />
+                <Target className="w-8 h-8 opacity-80" />
               </div>
-            </div> */}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {/* Tab Navigation */}
+        {/* Tabs */}
         <div className="flex space-x-1 bg-white rounded-2xl p-2 shadow-sm border border-gray-200 mb-8">
           <button
             onClick={() => setActiveTab("materials")}
@@ -258,7 +276,7 @@ export default function CoursePage() {
           </button>
         </div>
 
-        {/* Materials Tab */}
+        {/* Materials */}
         {activeTab === "materials" && (
           <div className="space-y-4">
             {topics.map((topic, idx) => (
@@ -312,23 +330,79 @@ export default function CoursePage() {
                           </h4>
 
                           {sub.materials?.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-3">
                               {sub.materials.map((material, mIdx) => (
-                                <a
+                                <div
                                   key={mIdx}
-                                  href={material.filePath}
-                                  download
-                                  className="group flex items-center justify-between p-4 bg-gray-50 hover:bg-blue-50 rounded-lg border border-gray-200 hover:border-blue-300 transition-all duration-200"
+                                  className={`group flex items-center justify-between p-4 rounded-lg border transition-all duration-200
+    ${
+      completedMaterials[material._id]
+        ? "bg-green-50 border-green-300"
+        : "bg-gray-50 hover:bg-blue-50 border-gray-200 hover:border-blue-300"
+    }
+  `}
                                 >
                                   <div className="flex items-center space-x-3 min-w-0 flex-1">
-                                    <FileText className="w-4 h-4 text-gray-400 group-hover:text-blue-600 flex-shrink-0" />
-                                    <span className="text-sm text-gray-700 group-hover:text-blue-900 truncate font-medium">
+                                    <FileText
+                                      className={`w-4 h-4 flex-shrink-0
+        ${
+          completedMaterials[material._id]
+            ? "text-green-600"
+            : "text-gray-400 group-hover:text-blue-600"
+        }
+      `}
+                                    />
+
+                                    <span
+                                      className={`text-sm truncate font-medium
+        ${
+          completedMaterials[material._id]
+            ? "text-green-800"
+            : "text-gray-700 group-hover:text-blue-900"
+        }
+      `}
+                                    >
                                       {material.fileName ||
                                         `Material ${mIdx + 1}`}
                                     </span>
+
+                                    {completedMaterials[material._id] && (
+                                      <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded-full">
+                                        Completed
+                                      </span>
+                                    )}
                                   </div>
-                                  <Download className="w-4 h-4 text-gray-400 group-hover:text-blue-600 flex-shrink-0 ml-2" />
-                                </a>
+
+                                  <div className="flex items-center space-x-2">
+                                    <button
+                                      onClick={() => handlePdfView(material)}
+                                      className="flex items-center gap-2 px-4 py-2 mx-3 bg-blue-600 text-white font-medium 
+             rounded-xl shadow hover:bg-blue-700 hover:shadow-md 
+             active:scale-95 transition-all duration-200"
+                                      title="View PDF"
+                                    >
+                                      <FileText className="w-5 h-5" />
+                                      Open PDF
+                                    </button>
+
+                                    <button
+                                      onClick={() =>
+                                        handleCompleteMaterial(material._id)
+                                      }
+                                      className={`px-3 py-1 text-xs rounded-lg transition-all duration-200
+        ${
+          completedMaterials[material._id]
+            ? "bg-green-600 text-white hover:bg-green-700"
+            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+        }
+      `}
+                                    >
+                                      {completedMaterials[material._id]
+                                        ? "Completed"
+                                        : "Mark as Completed"}
+                                    </button>
+                                  </div>
+                                </div>
                               ))}
                             </div>
                           ) : (
@@ -349,7 +423,7 @@ export default function CoursePage() {
           </div>
         )}
 
-        {/* Tests Tab */}
+        {/* Tests */}
         {activeTab === "tests" && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {tests.map((test, idx) => (
@@ -362,9 +436,6 @@ export default function CoursePage() {
                     <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
                       <BookOpen className="w-6 h-6 text-white" />
                     </div>
-                    {/* <div className="bg-green-100 text-green-800 text-xs font-medium px-3 py-1 rounded-full capitalize">
-                      {test.difficultyLevel}
-                    </div> */}
                   </div>
 
                   <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
@@ -381,12 +452,6 @@ export default function CoursePage() {
                         {test.topic}
                       </span>
                     </div>
-                    {/* <div className="flex items-center justify-between text-sm text-gray-600">
-                      <span>Questions</span>
-                      <span className="font-medium text-gray-900">
-                        {test.totalQuestions}
-                      </span>
-                    </div> */}
                     <div className="flex items-center justify-between text-sm text-gray-600">
                       <span>Duration</span>
                       <span className="font-medium text-gray-900">
@@ -407,32 +472,16 @@ export default function CoursePage() {
             ))}
           </div>
         )}
-
-        {/* Empty States */}
-        {activeTab === "materials" && topics.length === 0 && (
-          <div className="text-center py-12">
-            <FolderOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No Learning Materials
-            </h3>
-            <p className="text-gray-600">
-              No study materials available for this course yet.
-            </p>
-          </div>
-        )}
-
-        {activeTab === "tests" && tests.length === 0 && (
-          <div className="text-center py-12">
-            <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No Tests Available
-            </h3>
-            <p className="text-gray-600">
-              No assessment tests available for this course yet.
-            </p>
-          </div>
-        )}
       </div>
+
+      {/* PDF Viewer */}
+      {currentMaterial && (
+        <PdfViewer
+          material={currentMaterial}
+          onClose={() => setCurrentMaterial(null)}
+          serverURL={serverURL}
+        />
+      )}
     </div>
   );
 }
