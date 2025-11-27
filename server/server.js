@@ -11,6 +11,7 @@ import testRoutes from "./routes/testRoutes.js";
 import testUploadRoute from "./routes/testUploadRoute.js";
 import learningMaterialRoute from "./routes/learningMaterialRoute.js";
 import pdfViewerRoute from "./routes/fileServeRoute.js";
+import programRoutes from "./routes/programRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -31,6 +32,7 @@ app.use("/api/tests", testRoutes);
 app.use("/api/test", testUploadRoute);
 app.use("/api/learning-material", learningMaterialRoute);
 app.use("/api/file", pdfViewerRoute);
+app.use("/api/programs", programRoutes);
 
 app.listen(process.env.PORT, () =>
   console.log(`🚀 Server running on port ${process.env.PORT}`)

@@ -43,7 +43,6 @@ router.get("/testuploads", async (req, res) => {
   }
 });
 
-// routes/testUploadRoute.js - Update the single test endpoint
 router.get("/single/:id", async (req, res) => {
   try {
     const test = await UploadTest.findById(req.params.id);

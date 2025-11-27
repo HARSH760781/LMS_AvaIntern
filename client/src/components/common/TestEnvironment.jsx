@@ -30,6 +30,8 @@ const TestEnvironment = () => {
   const [error, setError] = useState("");
   const [showResultModal, setShowResultModal] = useState(false);
   const [testResult, setTestResult] = useState(null);
+  const [programMode, setProgramMode] = useState(false);
+  const [selectedDifficulty, setSelectedDifficulty] = useState("easy");
   const [started, setStarted] = useState(false); // Track test start
 
   // ----------------------- Fullscreen Functions -----------------------
@@ -265,7 +267,7 @@ const TestEnvironment = () => {
   const currentQ = questions[currentQuestion];
   // if (!started) {
   return (
-    <div className="h-screen w-screen flex flex-col bg-gray-50 text-sm z-[999]">
+    <div className="h-screen w-screen flex flex-col bg-gray-50 text-sm z-9999">
       {/* Header */}
       <div className="flex justify-between items-center px-5 py-2.5 bg-white border-b shadow-sm">
         <div className="flex space-x-3 min-w-0">

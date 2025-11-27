@@ -25,6 +25,8 @@ import TestEnvironment from "./components/common/TestEnvironment";
 import NotFound from "./pages/NotFound";
 import LearningEnvironment from "./components/common/LearningEnvironment";
 import { Toaster } from "react-hot-toast";
+import UploadProgram from "./pages/UploadProgram";
+import TestFileView from "./pages/TestFileView";
 
 function App() {
   const [hideNavbar, setHideNavbar] = useState(false);
@@ -84,13 +86,13 @@ function App() {
           <Route path="/course/typing-tests" element={<TypingTest />} />
           <Route path="/programming-test" element={<ProgrammingPractice />} />
           <Route path="/test/start/:testId" element={<TestEnvironment />} />
+          <Route path="/test/view/:id" element={<TestFileView />} />
           <Route path="/course/:courseTitle" element={<CoursePage />} />
           <Route
             path="/course/:category/:courseTitle"
             element={<LearningEnvironment />}
           />
 
-          {/* Admin protected routes */}
           <Route element={<ProtectedAdminRoute />}>
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/users" element={<User />} />
@@ -98,6 +100,7 @@ function App() {
             <Route path="/test" element={<TestUploader />} />
             <Route path="/admin/results" element={<AdminResults />} />
             <Route path="/upload-test" element={<UploadTest />} />
+            <Route path="/upload-program" element={<UploadProgram />} />
             <Route path="/tests" element={<TestList />} />
             <Route path="/upload-options" element={<UploadOptions />} />
             <Route
@@ -105,8 +108,6 @@ function App() {
               element={<UploadLearningMaterial />}
             />
           </Route>
-
-          {/* 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

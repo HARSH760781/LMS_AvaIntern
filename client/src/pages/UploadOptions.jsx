@@ -12,7 +12,7 @@ const UploadOptions = () => {
           Upload Manager
         </h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2                                                                                       ">
           {/* Upload Learning Material */}
           <div
             onClick={() => navigate("/upload-learning-material")}
@@ -42,6 +42,20 @@ const UploadOptions = () => {
             </h2>
             <p className="text-gray-600 text-center text-sm">
               Upload Excel files for practice and mock tests.
+            </p>
+          </div>
+          <div
+            onClick={() => navigate("/upload-program")}
+            className="bg-white p-6 rounded-xl shadow-xl border cursor-pointer hover:shadow-2xl hover:scale-[1.02] transition-all"
+          >
+            <div className="flex items-center justify-center mb-4">
+              <Upload className="w-12 h-12 text-red-600" />
+            </div>
+            <h2 className="font-semibold text-center text-lg mb-2">
+              Upload Programs
+            </h2>
+            <p className="text-gray-600 text-center text-sm">
+              Upload Excel files for practice programming questions.
             </p>
           </div>
         </div>
