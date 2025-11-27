@@ -15,12 +15,18 @@ import {
 import PdfViewer from "../common/PdfViewer";
 import { courseCategories } from "./courseMapping";
 
+/**
+ * CoursePage (Ultra-responsive, equal-height cards, clamp-based typography)
+ *
+ * Notes:
+ *  - This file keeps your existing API endpoints and PdfViewer usage.
+ *  - Uses inline style clamps for main headings and sub-headings to scale nicely.
+ *  - Cards use h-full and flex-col with justify-between to make all cards same height.
+ */
+
 export default function CoursePage() {
   const { courseTitle } = useParams();
   const navigate = useNavigate();
-
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedCourse, setSelectedCourse] = useState("");
 
   const [completedMaterials, setCompletedMaterials] = useState({});
   const [topics, setTopics] = useState([]);
@@ -32,7 +38,7 @@ export default function CoursePage() {
 
   const serverURL = import.meta.env.VITE_BACKEND_URL;
 
-  const prettyTitle = (str) =>
+  const prettyTitle = (str = "") =>
     str.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   useEffect(() => {
@@ -44,7 +50,7 @@ export default function CoursePage() {
         );
         const data = await res.json();
         const course = data?.find(
-          (c) => c.courseTitle?.toLowerCase() === courseTitle.toLowerCase()
+          (c) => c.courseTitle?.toLowerCase() === courseTitle?.toLowerCase()
         );
         setTopics(course?.topics || []);
 
@@ -54,24 +60,22 @@ export default function CoursePage() {
         const testData = await testRes.json();
         setTests(testData || []);
       } catch (err) {
-        console.error(err);
+        console.error("CoursePage fetch error:", err);
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
   }, [courseTitle, serverURL]);
 
-  // In CoursePage.jsx - Update the handleStartTest function
   const handleStartTest = (test) => {
-    // console.log("Starting test:", test._id);
-    navigate(`/test/start/${test._id}`); // Use the correct route
+    navigate(`/test/start/${test._id}`);
   };
 
   const handlePdfView = (material) => {
     if (material?.filePath) setCurrentMaterial(material);
     else alert("File not available.");
-    console.log(currentMaterial);
   };
 
   const totalMaterials = topics.reduce(
@@ -84,31 +88,35 @@ export default function CoursePage() {
     0
   );
 
-  // Count completed
   const completedCount =
     Object.values(completedMaterials).filter(Boolean).length;
 
-  // Calculate percentage
   const progressPercent =
     totalMaterials === 0
       ? 0
       : Math.round((completedCount / totalMaterials) * 100);
 
-  // Mark material completed
   const handleCompleteMaterial = (id) => {
     setCompletedMaterials((prev) => ({
       ...prev,
-      [id]: !prev[id], // toggle complete/uncomplete
+      [id]: !prev[id],
     }));
+  };
+
+  // clamp-based sizes
+  const styles = {
+    pageTitle: { fontSize: "clamp(1.25rem, 2.6vw, 2rem)" },
+    subTitle: { fontSize: "clamp(0.9rem, 1.6vw, 1.125rem)" },
+    sectionTitle: { fontSize: "clamp(1rem, 1.8vw, 1.25rem)" },
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-6">
         <div className="text-center">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-blue-100 rounded-full animate-spin border-t-blue-500"></div>
-            <Sparkles className="w-6 h-6 text-blue-500 absolute -top-1 -right-1 animate-pulse" />
+          <div className="relative mx-auto w-16 h-16">
+            <div className="w-full h-full rounded-full border-4 border-blue-100 animate-spin border-t-blue-500" />
+            <Sparkles className="absolute -top-1 -right-1 text-blue-500" />
           </div>
           <p className="text-gray-600 mt-4 font-medium">
             Loading Course Content
@@ -118,162 +126,160 @@ export default function CoursePage() {
     );
   }
 
-  if (topics.length === 0 && tests.length === 0) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-8">
-          <div className="w-20 h-20 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-6">
-            <BookOpen className="w-10 h-10 text-gray-400" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            No Content Available
-          </h2>
-          <p className="text-gray-600 mb-6">
-            No learning materials or tests found for{" "}
-            <strong>{prettyTitle(courseTitle)}</strong>
-          </p>
-          <button
-            onClick={() => navigate(-1)}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-all duration-200 hover:shadow-lg"
-          >
-            Back to Courses
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 pb-12">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-start md:items-center gap-4">
               <button
                 onClick={() => navigate(-1)}
-                className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
+                className="inline-flex items-center gap-2 text-gray-600 hover:text-gray-900"
+                aria-label="Go back"
               >
                 <ArrowLeft className="w-5 h-5" />
-                <span className="font-medium">Back</span>
+                <span style={styles.subTitle} className="font-medium">
+                  Back
+                </span>
               </button>
-              <div className="w-1 h-8 m-2  bg-gray-200 rounded-full"></div>
+
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 mx-2">
+                <h1
+                  style={styles.pageTitle}
+                  className="text-gray-900 font-bold leading-tight"
+                >
                   {prettyTitle(courseTitle)}
                 </h1>
-                <p className="text-gray-600 mt-1 mx-2">
+                <p style={styles.subTitle} className="text-gray-600 mt-1">
                   Master your skills with comprehensive learning materials and
                   assessments
                 </p>
               </div>
             </div>
-            <div className="flex items-center space-x-3">
+
+            <div className="flex items-center gap-4">
               <div className="flex items-center space-x-4 text-sm text-gray-600">
-                <div className="flex items-center space-x-1">
+                <div className="flex items-center gap-2">
                   <FolderOpen className="w-4 h-4" />
-                  <span>{topics.length} Topics</span>
+                  <span className="text-sm">{topics.length} Topics</span>
                 </div>
-                <div className="flex items-center space-x-1">
+                <div className="flex items-center gap-2">
                   <BookOpen className="w-4 h-4" />
-                  <span>{tests.length} Tests</span>
+                  <span className="text-sm">{tests.length} Tests</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
-            <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-4 text-white">
+          {/* Enhanced Responsive Stats cards */}
+          <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {/* Total Materials Card */}
+            <div className="rounded-xl sm:rounded-2xl p-3 sm:p-4 text-white bg-gradient-to-r from-blue-500 to-blue-600">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-blue-100 text-sm">Total Materials</p>
-                  <p className="text-2xl font-bold mt-1">
-                    {topics.reduce(
-                      (acc, topic) =>
-                        acc +
-                        (topic.subTopics?.reduce(
-                          (subAcc, sub) =>
-                            subAcc + (sub.materials?.length || 0),
-                          0
-                        ) || 0),
-                      0
-                    )}
+                  <p className="text-blue-100 text-xs sm:text-sm">
+                    Total Materials
+                  </p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold mt-1">
+                    {totalMaterials}
                   </p>
                 </div>
-                <FileText className="w-8 h-8 opacity-80" />
+                <FileText className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 opacity-80 flex-shrink-0" />
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-4 text-white">
+            {/* Available Tests Card */}
+            <div className="rounded-xl sm:rounded-2xl p-3 sm:p-4 text-white bg-gradient-to-r from-green-500 to-green-600">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-100 text-sm">Available Tests</p>
-                  <p className="text-2xl font-bold mt-1">{tests.length}</p>
+                  <p className="text-green-100 text-xs sm:text-sm">
+                    Available Tests
+                  </p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold mt-1">
+                    {tests.length}
+                  </p>
                 </div>
-                <Target className="w-8 h-8 opacity-80" />
+                <Target className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 opacity-80 flex-shrink-0" />
               </div>
             </div>
+
             {/* Progress Card */}
-            <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl p-4 text-white">
+            <div className="rounded-xl sm:rounded-2xl p-3 sm:p-4 text-white bg-gradient-to-r from-purple-500 to-purple-600">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-100 text-sm">Your Progress</p>
-                  <p className="text-2xl font-bold mt-1">{progressPercent}%</p>
+                  <p className="text-purple-100 text-xs sm:text-sm">
+                    Your Progress
+                  </p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold mt-1">
+                    {progressPercent}%
+                  </p>
                 </div>
-                <Sparkles className="w-8 h-8 opacity-80" />
+                <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 opacity-80 flex-shrink-0" />
               </div>
 
-              {/* Progress bar */}
-              <div className="w-full bg-purple-300 h-2 rounded-full mt-3">
+              <div
+                className="w-full bg-purple-300 h-1.5 sm:h-2 rounded-full mt-2 sm:mt-3"
+                role="progressbar"
+                aria-valuenow={progressPercent}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              >
                 <div
-                  className="h-2 rounded-full bg-white"
+                  className="h-1.5 sm:h-2 rounded-full bg-white transition-all duration-500 ease-out"
                   style={{ width: `${progressPercent}%` }}
-                ></div>
+                />
               </div>
             </div>
 
-            {/* Completed Count */}
-            <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-2xl p-4 text-white">
+            {/* Completed Materials Card */}
+            <div className="rounded-xl sm:rounded-2xl p-3 sm:p-4 text-white bg-gradient-to-r from-yellow-500 to-yellow-600">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-yellow-100 text-sm">Completed Materials</p>
-                  <p className="text-2xl font-bold mt-1">{completedCount}</p>
+                  <p className="text-yellow-100 text-xs sm:text-sm">
+                    Completed Materials
+                  </p>
+                  <p className="text-lg sm:text-xl lg:text-2xl font-bold mt-1">
+                    {completedCount}
+                  </p>
                 </div>
-                <Target className="w-8 h-8 opacity-80" />
+                <Target className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 opacity-80 flex-shrink-0" />
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      {/* Main Content area */}
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
         {/* Tabs */}
-        <div className="flex space-x-1 bg-white rounded-2xl p-2 shadow-sm border border-gray-200 mb-8">
+        <div className="flex gap-2 bg-white rounded-2xl p-2 shadow-sm border border-gray-200 mb-6">
           <button
             onClick={() => setActiveTab("materials")}
-            className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition ${
               activeTab === "materials"
-                ? "bg-blue-600 text-white shadow-lg"
+                ? "bg-blue-600 text-white shadow"
                 : "text-gray-600 hover:text-gray-900"
             }`}
+            aria-pressed={activeTab === "materials"}
           >
-            <FolderOpen className="w-5 h-5" />
-            <span>Learning Materials</span>
+            <FolderOpen className="w-4 h-4" />
+            <span className="text-sm">Learning Materials</span>
           </button>
+
           <button
             onClick={() => setActiveTab("tests")}
-            className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+            className={`flex items-center gap-2 px-1 py-2 rounded-xl font-medium transition ${
               activeTab === "tests"
-                ? "bg-green-600 text-white shadow-lg"
+                ? "bg-green-600 text-white shadow"
                 : "text-gray-600 hover:text-gray-900"
             }`}
+            aria-pressed={activeTab === "tests"}
           >
-            <BookOpen className="w-5 h-5" />
-            <span>Assessment Tests</span>
+            <BookOpen className="w-4 h-4" />
+            <span className="text-sm">Assessment Tests</span>
             {tests.length > 0 && (
-              <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+              <span className="ml-2 inline-flex items-center bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full">
                 {tests.length}
               </span>
             )}
@@ -284,108 +290,111 @@ export default function CoursePage() {
         {activeTab === "materials" && (
           <div className="space-y-4">
             {topics.map((topic, idx) => (
-              <div
+              <section
                 key={idx}
-                className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 overflow-hidden"
+                className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden"
               >
-                <button
-                  className="w-full flex justify-between items-center p-6 text-left hover:bg-gray-50 transition-colors duration-200"
-                  onClick={() =>
-                    setOpenTopicIndex(openTopicIndex === idx ? null : idx)
-                  }
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-                      <FolderOpen className="w-6 h-6 text-white" />
+                <header>
+                  <button
+                    className="w-full flex justify-between items-center p-5 md:p-6 text-left hover:bg-gray-50 transition"
+                    onClick={() =>
+                      setOpenTopicIndex(openTopicIndex === idx ? null : idx)
+                    }
+                    aria-expanded={openTopicIndex === idx}
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow">
+                        <FolderOpen className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h3
+                          className="font-semibold text-gray-900"
+                          style={styles.sectionTitle}
+                        >
+                          {topic.topicTitle}
+                        </h3>
+                        <p className="text-gray-600 text-sm mt-1">
+                          {topic.subTopics?.length || 0} sub-topics • Click to{" "}
+                          {openTopicIndex === idx ? "collapse" : "expand"}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-900">
-                        {topic.topicTitle}
-                      </h3>
-                      <p className="text-gray-600 mt-1">
-                        {topic.subTopics?.length || 0} sub-topics • Click to
-                        expand
-                      </p>
+
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm text-gray-500">
+                        {openTopicIndex === idx ? "Collapse" : "Expand"}
+                      </span>
+                      {openTopicIndex === idx ? (
+                        <ChevronUp className="w-5 h-5 text-gray-400" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                      )}
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <span className="text-sm text-gray-500">
-                      {openTopicIndex === idx ? "Collapse" : "Expand"}
-                    </span>
-                    {openTopicIndex === idx ? (
-                      <ChevronUp className="w-5 h-5 text-gray-400" />
-                    ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
-                    )}
-                  </div>
-                </button>
+                  </button>
+                </header>
 
                 {openTopicIndex === idx && (
-                  <div className="border-t border-gray-200 bg-gray-50">
-                    <div className="p-6 space-y-4">
+                  <div className="border-t border-gray-200 bg-gray-50 p-5 md:p-6">
+                    <div className="space-y-6">
                       {topic.subTopics?.map((sub, subIdx) => (
                         <div
                           key={subIdx}
-                          className="bg-white rounded-xl border border-gray-200 p-5 hover:border-blue-300 transition-all duration-200"
+                          className="bg-white rounded-xl border border-gray-200 p-4 md:p-5"
                         >
-                          <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
-                            <FileText className="w-5 h-5 text-blue-600 mr-3" />
-                            {sub.subTopicTitle}
-                          </h4>
+                          <div className="flex items-center justify-between mb-4">
+                            <h4 className="font-semibold text-gray-900">
+                              <FileText className="inline-block mr-2" />
+                              {sub.subTopicTitle}
+                            </h4>
+                            <div className="text-sm text-gray-600">
+                              {sub.materials?.length || 0} materials
+                            </div>
+                          </div>
 
                           {sub.materials?.length > 0 ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
                               {sub.materials.map((material, mIdx) => (
-                                <div
+                                <article
                                   key={mIdx}
-                                  className={`group flex items-center justify-between p-4 rounded-lg border transition-all duration-200
-    ${
-      completedMaterials[material._id]
-        ? "bg-green-50 border-green-300"
-        : "bg-gray-50 hover:bg-blue-50 border-gray-200 hover:border-blue-300"
-    }
-  `}
+                                  className={`flex flex-col h-full rounded-lg border transition ${
+                                    completedMaterials[material._id]
+                                      ? "bg-green-50 border-green-300"
+                                      : "bg-white border-gray-200 hover:shadow"
+                                  }`}
                                 >
-                                  <div className="flex items-center space-x-3 min-w-0 flex-1">
-                                    <FileText
-                                      className={`w-4 h-4 flex-shrink-0
-        ${
-          completedMaterials[material._id]
-            ? "text-green-600"
-            : "text-gray-400 group-hover:text-blue-600"
-        }
-      `}
-                                    />
-
-                                    <span
-                                      className={`text-sm truncate font-medium
-        ${
-          completedMaterials[material._id]
-            ? "text-green-800"
-            : "text-gray-700 group-hover:text-blue-900"
-        }
-      `}
-                                    >
-                                      {material.fileName ||
-                                        `Material ${mIdx + 1}`}
-                                    </span>
-
-                                    {completedMaterials[material._id] && (
-                                      <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded-full">
-                                        Completed
-                                      </span>
-                                    )}
+                                  {/* Make content stretch so buttons sit at bottom */}
+                                  <div className="p-4 flex-1 min-h-0">
+                                    <div className="flex items-start gap-3">
+                                      <FileText
+                                        className={`w-5 h-5 flex-shrink-0 mt-1 ${
+                                          completedMaterials[material._id]
+                                            ? "text-green-600"
+                                            : "text-gray-400"
+                                        }`}
+                                      />
+                                      <div className="min-w-0">
+                                        <h5 className="font-semibold text-gray-900 truncate">
+                                          {material.fileName ||
+                                            `Material ${mIdx + 1}`}
+                                        </h5>
+                                        <p className="text-sm text-gray-600 mt-1">
+                                          Size:{" "}
+                                          {material.fileSize
+                                            ? `${(
+                                                material.fileSize / 1024
+                                              ).toFixed(2)} KB`
+                                            : "—"}
+                                        </p>
+                                      </div>
+                                    </div>
                                   </div>
 
-                                  <div className="flex items-center space-x-2">
+                                  <div className="p-4 pt-0 flex items-center justify-between gap-3">
                                     <button
                                       onClick={() => handlePdfView(material)}
-                                      className="flex items-center gap-2 px-4 py-2 mx-3 bg-blue-600 text-white font-medium 
-             rounded-xl shadow hover:bg-blue-700 hover:shadow-md 
-             active:scale-95 transition-all duration-200"
-                                      title="View PDF"
+                                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
                                     >
-                                      <FileText className="w-5 h-5" />
+                                      <FileText className="w-4 h-4" />
                                       Open PDF
                                     </button>
 
@@ -393,28 +402,23 @@ export default function CoursePage() {
                                       onClick={() =>
                                         handleCompleteMaterial(material._id)
                                       }
-                                      className={`px-3 py-1 text-xs rounded-lg transition-all duration-200
-        ${
-          completedMaterials[material._id]
-            ? "bg-green-600 text-white hover:bg-green-700"
-            : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-        }
-      `}
+                                      className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                                        completedMaterials[material._id]
+                                          ? "bg-green-600 text-white"
+                                          : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                                      }`}
                                     >
                                       {completedMaterials[material._id]
                                         ? "Completed"
-                                        : "Mark as Completed"}
+                                        : "Mark Completed"}
                                     </button>
                                   </div>
-                                </div>
+                                </article>
                               ))}
                             </div>
                           ) : (
-                            <div className="text-center py-6">
-                              <FileText className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                              <p className="text-gray-500 text-sm">
-                                No materials available for this sub-topic
-                              </p>
+                            <div className="text-center py-6 text-gray-500">
+                              No materials available for this sub-topic
                             </div>
                           )}
                         </div>
@@ -422,7 +426,7 @@ export default function CoursePage() {
                     </div>
                   </div>
                 )}
-              </div>
+              </section>
             ))}
           </div>
         )}
@@ -449,15 +453,15 @@ export default function CoursePage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {tests.map((test, idx) => (
-                  <div
+                  <article
                     key={idx}
-                    className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg transition-all duration-300 overflow-hidden group"
+                    className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-lg transition flex flex-col h-full"
                   >
-                    <div className="p-6">
+                    <div className="p-6 flex-1 flex flex-col">
                       <div className="flex items-center justify-between mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
+                        <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center">
                           <BookOpen className="w-6 h-6 text-white" />
                         </div>
                       </div>
@@ -465,18 +469,19 @@ export default function CoursePage() {
                       <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
                         {test.testTitle}
                       </h3>
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                      <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-1">
                         {test.testDescription}
                       </p>
 
-                      <div className="space-y-2 mb-6">
-                        <div className="flex items-center justify-between text-sm text-gray-600">
+                      <div className="space-y-3 mb-4 text-sm text-gray-600">
+                        <div className="flex items-center justify-between">
                           <span>Topic</span>
                           <span className="font-medium text-gray-900">
                             {test.topic}
                           </span>
                         </div>
-                        <div className="flex items-center justify-between text-sm text-gray-600">
+
+                        <div className="flex items-center justify-between">
                           <span>Duration</span>
                           <span className="font-medium text-gray-900">
                             {test.duration} min
@@ -484,15 +489,17 @@ export default function CoursePage() {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => handleStartTest(test)}
-                        className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white py-3 rounded-xl font-semibold transition-all duration-200 hover:shadow-lg flex items-center justify-center space-x-2 group-hover:scale-105"
-                      >
-                        <Play className="w-5 h-5" />
-                        <span>Start Test</span>
-                      </button>
+                      <div className="mt-auto">
+                        <button
+                          onClick={() => handleStartTest(test)}
+                          className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-xl font-semibold transition hover:shadow-lg flex items-center justify-center gap-2"
+                        >
+                          <Play className="w-4 h-4" />
+                          <span>Start Test</span>
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  </article>
                 ))}
               </div>
             )}
@@ -500,7 +507,7 @@ export default function CoursePage() {
         )}
       </div>
 
-      {/* PDF Viewer */}
+      {/* Pdf Viewer overlay */}
       {currentMaterial && (
         <PdfViewer
           material={currentMaterial}

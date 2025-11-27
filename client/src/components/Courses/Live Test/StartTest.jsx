@@ -45,12 +45,9 @@ const StartTest = () => {
         if (data.eligible) {
           setEligible(true);
           setTestDetails(data.test);
-          // If eligible, load the test questions
           await loadTestQuestions();
         } else {
           setEligible(false);
-
-          // Show specific notification based on reason
           if (data.alreadyTaken) {
             toast.error("🚫 You have already taken this test!", {
               position: "top-center",
@@ -62,8 +59,6 @@ const StartTest = () => {
               autoClose: 5000,
             });
           }
-
-          // Redirect back to tests page after 3 seconds
           setTimeout(() => {
             navigate("/live-tests");
           }, 3000);
@@ -129,7 +124,7 @@ const StartTest = () => {
   const calculateScore = () => {
     let s = 0;
     questions.forEach((q, i) => {
-      const selected = answers[i]; // e.g., "OptionA"
+      const selected = answers[i];
       if (!selected) return;
       if (selected === q.correct) s += 1;
     });
@@ -185,9 +180,9 @@ const StartTest = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col justify-center items-center h-screen bg-gray-50">
-        <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-lg font-medium text-gray-700">
+      <div className="flex flex-col justify-center items-center min-h-screen bg-gray-50 p-4">
+        <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-3 sm:mb-4"></div>
+        <p className="text-base sm:text-lg font-medium text-gray-700 text-center">
           Checking test eligibility...
         </p>
       </div>
@@ -196,17 +191,17 @@ const StartTest = () => {
 
   if (!eligible) {
     return (
-      <div className="flex flex-col justify-center items-center h-screen bg-gray-50 p-6">
-        <div className="text-6xl mb-4">🚫</div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
+      <div className="flex flex-col justify-center items-center min-h-screen bg-gray-50 p-4 sm:p-6">
+        <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">🚫</div>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2 text-center">
           Test Not Available
         </h2>
-        <p className="text-gray-600 mb-6 text-center">
+        <p className="text-gray-600 mb-4 sm:mb-6 text-center text-sm sm:text-base">
           You are not eligible to take this test.
         </p>
         <button
           onClick={() => navigate("/live-tests")}
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition"
+          className="bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-blue-700 transition text-sm sm:text-base"
         >
           Back to Tests
         </button>
@@ -217,24 +212,24 @@ const StartTest = () => {
 
   if (!started) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-50 font-sans p-6">
-        <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full text-center">
-          <h1 className="text-3xl font-bold mb-4 text-blue-900">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 font-sans p-4 sm:p-6">
+        <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl sm:rounded-2xl shadow-lg max-w-md w-full text-center">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 sm:mb-4 text-blue-900">
             {testDetails?.title || "Test Instructions"}
           </h1>
 
-          <div className="text-left mb-6 space-y-3">
-            <p className="text-gray-700">
+          <div className="text-left mb-4 sm:mb-6 space-y-2 sm:space-y-3">
+            <p className="text-sm sm:text-base text-gray-700">
               <strong>Duration:</strong>{" "}
               {testDetails?.duration || Math.floor(timeLeft / 60)} minutes
             </p>
-            <p className="text-gray-700">
+            <p className="text-sm sm:text-base text-gray-700">
               <strong>Total Questions:</strong> {questions.length}
             </p>
-            <p className="text-gray-700">
+            <p className="text-sm sm:text-base text-gray-700">
               <strong>Instructions:</strong>
             </p>
-            <ul className="text-sm text-gray-600 list-disc list-inside space-y-1">
+            <ul className="text-xs sm:text-sm text-gray-600 list-disc list-inside space-y-1">
               <li>You cannot pause the test once started</li>
               <li>Fullscreen mode will be enabled</li>
               <li>Each question has only one correct answer</li>
@@ -245,7 +240,7 @@ const StartTest = () => {
 
           <button
             onClick={handleStartTest}
-            className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-xl shadow-lg transition w-full"
+            className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 bg-blue-600 hover:bg-blue-700 text-white text-base sm:text-lg font-semibold rounded-lg sm:rounded-xl shadow-lg transition w-full"
           >
             Start Test Now
           </button>
@@ -257,22 +252,22 @@ const StartTest = () => {
 
   if (submitted) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gray-50 font-sans p-6">
-        <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md w-full text-center">
-          <div className="text-6xl mb-4">🎉</div>
-          <h1 className="text-3xl font-bold text-green-700 mb-4">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 font-sans p-4 sm:p-6">
+        <div className="bg-white p-4 sm:p-6 lg:p-8 rounded-xl sm:rounded-2xl shadow-lg max-w-md w-full text-center">
+          <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">🎉</div>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-700 mb-3 sm:mb-4">
             Test Submitted!
           </h1>
-          <p className="text-2xl mb-2">
+          <p className="text-lg sm:text-xl lg:text-2xl mb-2">
             Your Score: <span className="font-bold">{score}</span> /{" "}
             {questions.length}
           </p>
-          <p className="text-lg text-gray-600 mb-6">
+          <p className="text-base sm:text-lg text-gray-600 mb-4 sm:mb-6">
             Percentage: {((score / questions.length) * 100).toFixed(1)}%
           </p>
           <button
             onClick={() => navigate("/live-tests")}
-            className="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-xl shadow-lg transition w-full"
+            className="px-4 sm:px-6 lg:px-8 py-3 sm:py-4 bg-blue-600 hover:bg-blue-700 text-white text-base sm:text-lg font-semibold rounded-lg sm:rounded-xl shadow-lg transition w-full"
           >
             Back to Tests
           </button>
@@ -285,58 +280,63 @@ const StartTest = () => {
   const q = questions[index];
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 flex flex-col items-center p-6 font-sans">
+    <div className="w-full min-h-screen bg-gray-50 flex flex-col items-center p-3 sm:p-4 lg:p-6 font-sans">
       {/* Header with timer */}
-      <div className="w-full max-w-4xl mb-6">
-        <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-md">
-          <div>
-            <h1 className="text-xl font-bold text-gray-800">
+      <div className="w-full max-w-4xl mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-center bg-white p-3 sm:p-4 rounded-lg shadow-md gap-3 sm:gap-0">
+          <div className="text-center sm:text-left">
+            <h1 className="text-lg sm:text-xl font-bold text-gray-800 line-clamp-1">
               {testDetails?.title || "Test"}
             </h1>
-            <p className="text-sm text-gray-600">
+            <p className="text-xs sm:text-sm text-gray-600">
               Question {index + 1} of {questions.length}
             </p>
           </div>
-          <div className="text-right">
+          <div className="text-center sm:text-right">
             <div
-              className={`text-2xl font-bold ${
+              className={`text-xl sm:text-2xl font-bold ${
                 timeLeft < 300 ? "text-red-600 animate-pulse" : "text-blue-600"
               }`}
             >
               {Math.floor(timeLeft / 60)}:
               {(timeLeft % 60).toString().padStart(2, "0")}
             </div>
-            <p className="text-sm text-gray-500">Time Remaining</p>
+            <p className="text-xs sm:text-sm text-gray-500">Time Remaining</p>
           </div>
         </div>
       </div>
 
       {/* Question Card */}
-      <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-4xl flex flex-col">
-        <div className="mb-6">
-          <h2 className="text-xl font-bold mb-4 text-gray-800">{q.question}</h2>
+      <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl shadow-lg w-full max-w-4xl flex flex-col">
+        <div className="mb-4 sm:mb-6">
+          <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-gray-800 leading-relaxed">
+            {q.question}
+          </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:gap-4">
             {q.options.map((opt, i) => {
               const label = ["A", "B", "C", "D"][i];
               const value = `Option${label}`;
               return (
                 <label
                   key={i}
-                  className={`block p-4 border-2 rounded-xl cursor-pointer text-lg font-medium transition ${
+                  className={`block p-3 sm:p-4 border-2 rounded-lg sm:rounded-xl cursor-pointer text-base sm:text-lg font-medium transition ${
                     answers[index] === value
                       ? "border-blue-600 bg-blue-50 shadow-md"
                       : "border-gray-300 hover:border-blue-400 hover:shadow-sm"
                   }`}
                 >
-                  <input
-                    type="radio"
-                    name="answer"
-                    checked={answers[index] === value}
-                    onChange={() => chooseAnswer(value)}
-                    className="mr-3 accent-blue-600 transform scale-125"
-                  />
-                  <span className="font-semibold">{label}.</span> {opt}
+                  <div className="flex items-center">
+                    <input
+                      type="radio"
+                      name="answer"
+                      checked={answers[index] === value}
+                      onChange={() => chooseAnswer(value)}
+                      className="mr-3 accent-blue-600 transform scale-110 sm:scale-125"
+                    />
+                    <span className="font-semibold">{label}.</span>
+                    <span className="ml-2">{opt}</span>
+                  </div>
                 </label>
               );
             })}
@@ -344,11 +344,11 @@ const StartTest = () => {
         </div>
 
         {/* Navigation Buttons */}
-        <div className="flex justify-between items-center mt-6 pt-6 border-t border-gray-200">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
           <button
             disabled={index === 0}
             onClick={() => setIndex(index - 1)}
-            className={`px-6 py-3 rounded-xl font-medium text-lg flex items-center ${
+            className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-medium text-sm sm:text-base flex items-center w-full sm:w-auto justify-center ${
               index === 0
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                 : "bg-gray-600 hover:bg-gray-700 text-white shadow-md"
@@ -357,10 +357,10 @@ const StartTest = () => {
             ⬅ Previous
           </button>
 
-          <div className="flex gap-4">
+          <div className="flex gap-2 sm:gap-4 order-3 sm:order-2 w-full sm:w-auto justify-center sm:justify-start mt-3 sm:mt-0">
             <button
               onClick={handleSubmit}
-              className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white text-lg font-semibold rounded-xl shadow-lg transition"
+              className="px-4 sm:px-6 py-2 sm:py-3 bg-green-600 hover:bg-green-700 text-white text-sm sm:text-base font-semibold rounded-lg sm:rounded-xl shadow-lg transition flex-1 sm:flex-none"
             >
               Submit Test
             </button>
@@ -369,7 +369,7 @@ const StartTest = () => {
           <button
             onClick={() => setIndex(index + 1)}
             disabled={index === questions.length - 1}
-            className={`px-6 py-3 rounded-xl font-medium text-lg flex items-center ${
+            className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg sm:rounded-xl font-medium text-sm sm:text-base flex items-center w-full sm:w-auto justify-center ${
               index === questions.length - 1
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                 : "bg-blue-600 hover:bg-blue-700 text-white shadow-md"
@@ -380,16 +380,16 @@ const StartTest = () => {
         </div>
 
         {/* Progress indicator */}
-        <div className="mt-6">
-          <div className="flex justify-between text-sm text-gray-600 mb-2">
+        <div className="mt-4 sm:mt-6">
+          <div className="flex justify-between text-xs sm:text-sm text-gray-600 mb-1 sm:mb-2">
             <span>Progress</span>
             <span>
               {index + 1} / {questions.length}
             </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-200 rounded-full h-1.5 sm:h-2">
             <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              className="bg-blue-600 h-1.5 sm:h-2 rounded-full transition-all duration-300"
               style={{ width: `${((index + 1) / questions.length) * 100}%` }}
             ></div>
           </div>

@@ -21,28 +21,37 @@ const imgURL = [
 
 const CompanyMocks = () => {
   return (
-    <div className="w-[95%] mx-auto border border-gray-200 shadow-xl rounded-xl p-4 my-5 bg-white hover:shadow-2xl transition">
+    <div className="w-[95%] mx-auto border border-gray-200 shadow-xl rounded-xl p-4 my-5 bg-white transition">
       {/* Header */}
-      <div className="flex items-center gap-3 text-blue-700 px-7 text-3xl font-bold font-sans m-3">
+      <div className="flex items-center gap-3 text-blue-700 px-7 text-2xl sm:text-3xl font-bold font-sans m-3">
         <PanelsTopLeft className="w-7 h-7 text-gray-800" />
         <span>Company Mocks</span>
       </div>
 
-      <hr className="px-5 border-black border-4 mt-1" />
+      <hr className="px-5 border-black border-2" />
 
-      {/* Cards Section */}
-      <div className="grid grid-cols-5 gap-7 p-5">
+      {/* Responsive Grid */}
+      <div
+        className="
+          grid gap-6 
+          grid-cols-3
+          sm:grid-cols-4
+          md:grid-cols-5
+          lg:grid-cols-6
+        "
+      >
         {imgURL.map((url, index) => (
           <div
             key={index}
-            className="w-30 h-30 bg-white border border-gray-300 shadow-md rounded-xl 
-                       flex items-center justify-center p-1.5 cursor-pointer
-                       hover:shadow-xl hover:scale-[1.03] transition"
+            className="bg-white border border-gray-300 shadow-md rounded-xl 
+                       flex items-center justify-center 
+                       h-20 sm:h-24 md:h-28 p-1
+                       cursor-pointer hover:shadow-xl hover:scale-[1.03] transition"
           >
             <img
               src={url}
               alt="Company Logo"
-              className=" w-30 h-35 object-contain"
+              className="max-w-full max-h-full object-fill"
             />
           </div>
         ))}

@@ -51,6 +51,7 @@ const CourseTab = ({
         flex flex-col items-center justify-between 
         hover:shadow-lg transition cursor-pointer
         ${config.padding}
+        h-full
         ${isSingleCard ? "single-card" : config.container}
       `}
     >

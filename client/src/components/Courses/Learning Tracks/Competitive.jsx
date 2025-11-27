@@ -19,14 +19,14 @@ const courseData = [
 
 const Competitive = () => {
   return (
-    <div className="w-[95%] mx-auto border border-gray-200 shadow-lg rounded-xl p-5 my-6 bg-white hover:shadow-2xl transition-all duration-300">
+    <div className="w-[95%] mx-auto border border-gray-200 shadow-lg rounded-xl p-2 py-3 my-6 bg-white hover:shadow-2xl transition-all duration-300">
       {/* Section Heading */}
-      <div className="flex items-center gap-3 text-blue-700 px-4 text-2xl md:text-3xl font-bold">
+      <div className="flex items-center gap-3 text-blue-700 px-4 text-2xl md:text-3xl font-bold my-3">
         <PanelsTopLeft className="w-7 h-7 text-blue-800" />
         <span> Competitive Coding</span>
       </div>
 
-      <hr className="border-blue-700 border-[2px] mt-3 mb-6 w-24 ml-4" />
+      {/* <hr className="border-blue-700 font-bold border-[2px] mt-3 mb-6 w-24 ml-4" /> */}
 
       {/* Responsive Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-6 px-3">

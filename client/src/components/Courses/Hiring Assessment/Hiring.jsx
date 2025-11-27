@@ -8,21 +8,21 @@ const courseData = [
     imageUrl:
       "https://ik.imagekit.io/y7csnuuzj/Icons/APTITUDE.png?updatedAt=1763706236262",
     courseName: "Aptitude Tests",
-    route: "/aptitude",
+    route: "/aptitude-tests",
     description: "Master quantitative and logical reasoning",
   },
   {
     imageUrl:
       "https://ik.imagekit.io/y7csnuuzj/Icons/pROGRAMMING.png?updatedAt=1763706236186",
     courseName: "Programming Tests",
-    route: "/programming-test",
+    route: "/programming-tests",
     description: "Code and solve complex problems",
   },
   {
     imageUrl:
       "https://ik.imagekit.io/y7csnuuzj/Icons/tYPING.png?updatedAt=1763706236099",
     courseName: "Typing Tests",
-    route: "/typing-test",
+    route: "/typing-tests",
     description: "Improve your speed & accuracy",
   },
   {
@@ -37,7 +37,7 @@ const Hiring = () => {
   const navigate = useNavigate();
 
   const handleCourseClick = (route) => {
-    navigate(route);
+    navigate(`/course/${route}`);
   };
 
   return (
@@ -64,7 +64,7 @@ const Hiring = () => {
           <div
             key={index}
             onClick={() => handleCourseClick(item.route)}
-            className="cursor-pointer"
+            className="cursor-pointer h-full"
           >
             <CourseTab
               imageUrl={item.imageUrl}

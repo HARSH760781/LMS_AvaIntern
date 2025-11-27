@@ -122,7 +122,7 @@ const Profile = () => {
       </div>
 
       {/* Profile Content */}
-      <div className="pt-14 pb-6 px-5 text-center">
+      <div className="pt-14 pb-6 px-4 text-center">
         <h2 className="text-xl font-bold text-gray-900">{userDetail.name}</h2>
         <p className="text-gray-600 text-sm mt-1">{userDetail.email}</p>
 

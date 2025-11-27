@@ -62,44 +62,49 @@ const Home = () => {
 
       {/* Welcome Section */}
       <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 mb-6 sm:mb-8">
+        <div className="bg-white rounded-2xl shadow-md border border-gray-100 p-6 sm:p-8 mb-8">
+          {/* Top Welcome Text */}
           <div className="text-center mb-6">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight">
               Welcome,{" "}
-              <span className="text-blue-600 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 {userDetail?.name || "User"}
               </span>
-              !
+              👋
             </h1>
-            <p className="text-gray-600 text-sm sm:text-base max-w-2xl mx-auto">
+
+            <p className="text-gray-600 text-sm sm:text-base max-w-xl mx-auto mt-2 leading-relaxed">
               Ready to accelerate your learning journey with personalized
-              assessments and tracks
+              assessments and curated tracks.
             </p>
           </div>
 
           {/* User Info Card */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 sm:p-8 border border-blue-100">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+              {/* Left Text Section */}
               <div className="flex-1 text-center sm:text-left">
                 <p className="text-gray-700 text-base sm:text-lg leading-relaxed">
-                  Here's what's happening with your account today. Stay focused
-                  and keep progressing!
+                  Here's what's happening with your account today. Stay focused,
+                  stay consistent, and keep making progress!
                 </p>
-                <div className="mt-3 flex items-center justify-center sm:justify-start gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+
+                <div className="mt-3 flex justify-center sm:justify-start items-center gap-2">
+                  <div className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse"></div>
                   <span className="text-sm text-green-600 font-medium">
                     Active Now
                   </span>
                 </div>
               </div>
 
-              {/* Calendar Section */}
-              <div className="flex items-center gap-4 bg-white rounded-lg p-4 shadow-sm border border-gray-200">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
+              {/* Calendar / Date Section */}
+              <div className="flex items-center gap-4 bg-white rounded-lg p-4 shadow-md border border-gray-200 w-fit">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-md">
                   <Calendar className="w-6 h-6 text-white" />
                 </div>
-                <div className="flex flex-col items-center">
-                  <span className="text-lg font-bold text-gray-900">
+
+                <div className="flex flex-col items-start">
+                  <span className="text-xl font-bold text-gray-900">
                     {new Date().getDate()}/{new Date().getMonth() + 1}
                   </span>
                   <span className="text-xs text-gray-500 font-medium">
@@ -107,7 +112,7 @@ const Home = () => {
                   </span>
                   <span className="text-xs text-blue-600 font-semibold mt-1">
                     {new Date().toLocaleDateString("en-US", {
-                      weekday: "short",
+                      weekday: "long",
                     })}
                   </span>
                 </div>
