@@ -33,7 +33,7 @@ const CompanyMocks = () => {
       {/* Responsive Grid */}
       <div
         className="
-          grid gap-6 
+          grid gap-3
           grid-cols-3
           sm:grid-cols-4
           md:grid-cols-5
