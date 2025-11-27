@@ -17,19 +17,19 @@ const courseData = [
   {
     imageUrl: "https://ik.imagekit.io/y7csnuuzj/Icons/cp.png",
     courseName: "Competitive Programming",
-    description: "Solve coding challenges",
+    description: "Solve advanced coding problems",
   },
   {
     imageUrl: "https://ik.imagekit.io/y7csnuuzj/Icons/interview.jpg",
     courseName: "Interview Skills",
-    description: "Ace your interviews",
+    description: "Ace behavioral & technical interviews",
   },
 ];
 
 const CRT = () => {
   const navigate = useNavigate();
 
-  const toSlug = (str) => str.toLowerCase().replace(/ /g, "-");
+  const slugify = (str) => str.toLowerCase().replace(/ /g, "-");
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 hover:shadow-lg transition-all duration-300">
@@ -48,16 +48,17 @@ const CRT = () => {
             </p>
           </div>
         </div>
+
         <ArrowRight className="w-5 h-5 text-gray-400" />
       </div>
 
-      {/* Course Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      {/* Grid */}
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
         {courseData.map((item, index) => (
           <div
             key={index}
-            onClick={() => navigate(`/course/${toSlug(item.courseName)}`)}
-            className="cursor-pointer transform hover:scale-105 transition-transform duration-200"
+            onClick={() => navigate(`/course/${slugify(item.courseName)}`)}
+            className="cursor-pointer"
           >
             <CourseTab
               imageUrl={item.imageUrl}

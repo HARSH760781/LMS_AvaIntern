@@ -37,20 +37,23 @@ const Home = () => {
 
       {/* Mobile Profile Overlay */}
       {showMobileProfile && (
-        <div className="xl:hidden fixed inset-0 z-40 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white p-4 border-b border-gray-200 flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-gray-900">
+        <div className="xl:hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-2 animate-fadeIn">
+          <div className="bg-gray-300 w-full max-w-[380px] rounded-3xl shadow-2xl p-2 overflow-hidden transform animate-scaleIn">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
+              <h3 className="text-lg font-semibold text-gray-800">
                 Your Profile
               </h3>
               <button
                 onClick={() => setShowMobileProfile(false)}
-                className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                className="w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center px-0 justify-center transition"
               >
-                <span className="text-lg">×</span>
+                ×
               </button>
             </div>
-            <div className="p-4">
+
+            {/* Scrollable Content */}
+            <div className="p-4 max-h-[60vh]  overflow-y-auto">
               <Profile />
             </div>
           </div>

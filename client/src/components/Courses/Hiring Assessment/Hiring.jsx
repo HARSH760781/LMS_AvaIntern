@@ -23,7 +23,7 @@ const courseData = [
       "https://ik.imagekit.io/y7csnuuzj/Icons/tYPING.png?updatedAt=1763706236099",
     courseName: "Typing Tests",
     route: "/typing-test",
-    description: "Improve your typing speed & accuracy",
+    description: "Improve your speed & accuracy",
   },
   {
     imageUrl: "https://ik.imagekit.io/y7csnuuzj/Icons/Test.png",
@@ -36,9 +36,8 @@ const courseData = [
 const Hiring = () => {
   const navigate = useNavigate();
 
-  const handleCourseClick = (courseName) => {
-    const formattedTitle = courseName.trim().replace(/\s+/g, "-").toLowerCase();
-    navigate(`/course/${formattedTitle}`);
+  const handleCourseClick = (route) => {
+    navigate(route);
   };
 
   return (
@@ -53,21 +52,19 @@ const Hiring = () => {
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
               Hiring Assessments
             </h2>
-            <p className="text-gray-600 text-sm mt-1">
-              Prepare for your dream company interviews
-            </p>
+            <p className="text-gray-600 text-sm mt-1">Prepare for placements</p>
           </div>
         </div>
         <ArrowRight className="w-5 h-5 text-gray-400" />
       </div>
 
-      {/* Course Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      {/* Grid */}
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-[repeat(auto-fit,minmax(180px,1fr))]">
         {courseData.map((item, index) => (
           <div
             key={index}
-            className="cursor-pointer transform hover:scale-105 transition-transform duration-200"
-            onClick={() => handleCourseClick(item.courseName)}
+            onClick={() => handleCourseClick(item.route)}
+            className="cursor-pointer"
           >
             <CourseTab
               imageUrl={item.imageUrl}

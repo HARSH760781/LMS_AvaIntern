@@ -1,5 +1,5 @@
 import React from "react";
-import { Menu, PanelsTopLeft } from "lucide-react";
+import { PanelsTopLeft } from "lucide-react";
 import CourseTab from "../../common/CourseTab";
 
 const courseData = [
@@ -19,14 +19,17 @@ const courseData = [
 
 const Competitive = () => {
   return (
-    <div className=" w-[95%] mx-auto border border-gray-200 shadow-xl rounded-xl p-4 my-5 bg-white hover:shadow-2xl transition">
-      <div className=" flex items-center gap-3 text-blue-700 px-7 text-3xl font-bold font-sans m-3">
-        <PanelsTopLeft className="w-7 h-7 text-gray-800 " />
-        <span>Competetive Coding</span>
+    <div className="w-[95%] mx-auto border border-gray-200 shadow-lg rounded-xl p-5 my-6 bg-white hover:shadow-2xl transition-all duration-300">
+      {/* Section Heading */}
+      <div className="flex items-center gap-3 text-blue-700 px-4 text-2xl md:text-3xl font-bold">
+        <PanelsTopLeft className="w-7 h-7 text-blue-800" />
+        <span> Competitive Coding</span>
       </div>
-      <hr className=" px-5 border-black border-4 mt-1" />
 
-      <div className="courseTab-Section flex m-auto w-full justify-around p-1">
+      <hr className="border-blue-700 border-[2px] mt-3 mb-6 w-24 ml-4" />
+
+      {/* Responsive Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-6 px-3">
         {courseData.map((item, index) => (
           <CourseTab
             key={index}
