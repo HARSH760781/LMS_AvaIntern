@@ -21,60 +21,45 @@ const fileSchema = new mongoose.Schema({
   },
 });
 
+// Each test inside course
+const testSchema = new mongoose.Schema({
+  testName: { type: String, required: true, trim: true },
+  description: { type: String, trim: true },
+  subject: { type: String, required: true, trim: true },
+  topic: { type: String, required: true, trim: true },
+  totalQuestion: { type: Number, default: 0 },
+  duration: { type: Number, required: true },
+  file: fileSchema, // ONE file per test
+  version: { type: Number, default: 1 },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
+  status: {
+    type: String,
+    enum: ["active", "inactive", "draft"],
+    default: "active",
+  },
+  createdAt: { type: Date, default: Date.now },
+});
+
+// Final document → One per courseTitle
 const testUploadSchema = new mongoose.Schema(
   {
-    testName: {
-      type: String,
-      required: true,
-      trim: true,
-      // Remove unique: true to allow multiple files for same test name
-    },
-    description: {
-      type: String,
-      trim: true,
-    },
-    subject: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    topic: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    totalQuestion: {
-      type: Number,
-      trim: true,
-    },
-    duration: {
-      type: Number,
-      required: true,
-    },
+    courseTitle: { type: String, required: true, unique: true, trim: true },
 
-    files: [fileSchema], // This matches your controller
-    createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    status: {
-      type: String,
-      enum: ["active", "inactive", "draft"],
-      default: "active",
-    },
+    // All tests grouped inside this one document
+    tests: [testSchema],
+
+    // Tracking
     lastUpdatedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    currentVersion: {
-      type: Number,
-      default: 1,
-    },
+    currentVersion: { type: Number, default: 1 },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 export default mongoose.model("TestUpload", testUploadSchema);

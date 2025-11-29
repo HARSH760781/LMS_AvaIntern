@@ -27,6 +27,7 @@ import LearningEnvironment from "./components/common/LearningEnvironment";
 import { Toaster } from "react-hot-toast";
 import UploadProgram from "./pages/UploadProgram";
 import TestFileView from "./pages/TestFileView";
+import CourseLearnPage from "./components/common/CourseLearnPage";
 
 function App() {
   const [hideNavbar, setHideNavbar] = useState(false);
@@ -85,13 +86,17 @@ function App() {
           <Route path="/start-test/:id" element={<StartTest />} />
           <Route path="/course/typing-tests" element={<TypingTest />} />
           <Route path="/programming-test" element={<ProgrammingPractice />} />
-          <Route path="/test/start/:testId" element={<TestEnvironment />} />
+          <Route
+            path="/test/:courseTitle/:testId"
+            element={<TestEnvironment />}
+          />
           <Route path="/test/view/:id" element={<TestFileView />} />
           <Route path="/course/:courseTitle" element={<CoursePage />} />
           <Route
             path="/course/:category/:courseTitle"
             element={<LearningEnvironment />}
           />
+          <Route path="/learn/:courseTitle" element={<CourseLearnPage />} />
 
           <Route element={<ProtectedAdminRoute />}>
             <Route path="/admin" element={<AdminDashboard />} />

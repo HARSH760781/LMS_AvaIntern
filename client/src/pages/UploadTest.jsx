@@ -1,10 +1,13 @@
+// src/components/UploadTest.jsx
 import React, { useState } from "react";
 import { Upload, FileSpreadsheet, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 
 const UploadTest = () => {
   const [file, setFile] = useState(null);
+
   const [formData, setFormData] = useState({
+    courseTitle: "",
     testName: "",
     description: "",
     subject: "",
@@ -15,39 +18,53 @@ const UploadTest = () => {
   const [loading, setLoading] = useState(false);
   const serverURL = import.meta.env.VITE_BACKEND_URL;
 
+  const COURSE_OPTIONS = [
+    "aptitude-tests",
+    "programming-tests",
+    "quantitative-aptitude",
+    "logical-reasoning",
+    "interview-skills",
+  ];
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData((s) => ({ ...s, [e.target.name]: e.target.value }));
   };
 
   const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    setFile(e.target.files[0] || null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!file) {
       toast.error("Please upload an Excel file!");
       return;
     }
 
+    const { courseTitle, testName, subject, topic, duration } = formData;
+    if (!courseTitle || !testName || !subject || !topic || !duration) {
+      toast.error("Please fill required fields");
+      return;
+    }
+
     setLoading(true);
 
-    const data = new FormData();
-    data.append("excelFile", file);
-
-    Object.keys(formData).forEach((key) => {
-      data.append(key, formData[key]);
-    });
-
     try {
-      const token = localStorage.getItem("token");
+      const data = new FormData();
+      data.append("excelFile", file);
 
+      Object.keys(formData).forEach((k) => {
+        if (k === "duration") {
+          data.append("duration", Number(formData.duration)); // FIX
+        } else {
+          data.append(k, formData[k]);
+        }
+      });
+
+      const token = localStorage.getItem("token");
       const res = await fetch(`${serverURL}/api/test/upload`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
         body: data,
       });
 
@@ -55,25 +72,27 @@ const UploadTest = () => {
 
       if (!res.ok) {
         toast.error(result.message || "Upload Failed!");
+        setLoading(false);
         return;
       }
 
-      toast.success("Test uploaded successfully!");
+      toast.success(result.message || "Uploaded successfully!");
 
       setFile(null);
       setFormData({
+        courseTitle: "",
         testName: "",
         description: "",
         subject: "",
         topic: "",
         duration: "",
       });
-    } catch (error) {
-      console.log(error);
-      toast.error("Upload Failed!");
+    } catch (err) {
+      console.error("Upload error:", err);
+      toast.error("Upload failed");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
@@ -91,6 +110,25 @@ const UploadTest = () => {
         onSubmit={handleSubmit}
         className="grid grid-cols-1 md:grid-cols-2 gap-6"
       >
+        {/* Course Title Dropdown */}
+        <div className="flex flex-col gap-2">
+          <label className="font-semibold">Course Title</label>
+          <select
+            name="courseTitle"
+            value={formData.courseTitle}
+            onChange={handleChange}
+            className="border p-3 rounded-lg bg-gray-50"
+            required
+          >
+            <option value="">Select Course</option>
+            {COURSE_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {option.replace("-", " ").toUpperCase()}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="flex flex-col gap-2">
           <label className="font-semibold">Test Name</label>
           <input
@@ -100,7 +138,7 @@ const UploadTest = () => {
             value={formData.testName}
             onChange={handleChange}
             required
-            className="border p-3 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-400 outline-none"
+            className="border p-3 rounded-lg bg-gray-50"
           />
         </div>
 
@@ -109,11 +147,11 @@ const UploadTest = () => {
           <input
             type="text"
             name="subject"
-            placeholder="Enter subject"
+            placeholder="Math, Programming, English..."
             value={formData.subject}
             onChange={handleChange}
             required
-            className="border p-3 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-400 outline-none"
+            className="border p-3 rounded-lg bg-gray-50"
           />
         </div>
 
@@ -122,11 +160,11 @@ const UploadTest = () => {
           <input
             type="text"
             name="topic"
-            placeholder="Enter topic"
+            placeholder="Number System, Loops, OOP..."
             value={formData.topic}
             onChange={handleChange}
             required
-            className="border p-3 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-400 outline-none"
+            className="border p-3 rounded-lg bg-gray-50"
           />
         </div>
 
@@ -139,35 +177,35 @@ const UploadTest = () => {
             value={formData.duration}
             onChange={handleChange}
             required
-            className="border p-3 rounded-lg bg-gray-50 focus:ring-2 focus:ring-blue-400 outline-none"
+            className="border p-3 rounded-lg bg-gray-50"
           />
         </div>
 
-        <div className="col-span-1 md:col-span-2 flex flex-col gap-2">
+        <div className="col-span-2">
           <label className="font-semibold">Description</label>
           <textarea
             name="description"
             placeholder="Enter description (optional)"
             value={formData.description}
             onChange={handleChange}
-            className="border p-3 rounded-lg bg-gray-50 h-28 resize-none focus:ring-2 focus:ring-blue-400 outline-none"
+            className="border p-3 rounded-lg bg-gray-50 h-28 resize-none"
           />
         </div>
 
-        <div className="col-span-1 md:col-span-2">
+        <div className="col-span-2">
           <label className="font-semibold">Excel File</label>
           <div className="mt-2 flex items-center gap-3 border p-4 rounded-lg bg-gray-50">
             <FileSpreadsheet className="text-green-600" size={24} />
             <input
               type="file"
-              accept=".xlsx, .xls"
+              accept=".xlsx,.xls"
               onChange={handleFileChange}
               className="cursor-pointer"
             />
           </div>
         </div>
 
-        <div className="col-span-1 md:col-span-2">
+        <div className="col-span-2">
           <button
             type="submit"
             disabled={loading}

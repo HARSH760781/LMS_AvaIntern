@@ -280,7 +280,7 @@ export default function LearningEnvironment() {
         </div>
 
         {/* Materials */}
-        {activeTab === "materials" && (
+        {/* {activeTab === "materials" && (
           <div className="space-y-3 sm:space-y-4">
             {topics.map((topic, idx) => (
               <div
@@ -425,8 +425,29 @@ export default function LearningEnvironment() {
               </div>
             ))}
           </div>
-        )}
+        )} */}
 
+        {activeTab === "materials" && (
+          <div>
+            {/* Start Learning Card */}
+            <div className="flex justify-start mb-6">
+              <div className="bg-white border border-gray-200 shadow-md rounded-2xl p-6 sm:p-8 max-w-md text-center">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-3">
+                  Start Learning
+                </h2>
+                <p className="text-gray-600 mb-6 text-sm sm:text-base">
+                  Begin your learning journey for {prettyTitle(courseTitle)}
+                </p>
+                <button
+                  onClick={() => navigate(`/learn/${courseTitle}`)}
+                  className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all duration-200 shadow-lg hover:scale-105"
+                >
+                  Start Learning
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Tests */}
         {activeTab === "tests" && (
           <>

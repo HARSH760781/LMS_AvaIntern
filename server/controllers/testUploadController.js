@@ -1,103 +1,95 @@
-// ✅ CORRECT IMPORT - Change this based on your actual file name
+// controllers/testUploadController.js
 import TestUpload from "../models/UploadTest.js";
 
 export const uploadTestFile = async (req, res) => {
   try {
-    const { testName, description, subject, topic, duration } = req.body;
+    const { courseTitle, testName, description, subject, topic, duration } =
+      req.body;
 
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+    if (!courseTitle || !testName || !subject || !topic || !duration) {
+      return res.status(400).json({ message: "Required fields missing" });
     }
 
-    // Use req.user.id or req.user.userId based on your auth middleware
-    const userId = req.user.id || req.user.userId || req.user._id;
+    if (!req.file) {
+      return res.status(400).json({ message: "No Excel file uploaded" });
+    }
 
+    const userId = req.user?.id || req.user?.userId || req.user?._id;
     if (!userId) {
       return res.status(401).json({ message: "User not authenticated" });
     }
 
-    // Find existing test
-    let test = await TestUpload.findOne({ testName });
+    const normalizedCourseTitle = courseTitle.trim();
+    const normalizedTestName = testName.trim();
 
-    if (!test) {
-      // Create new test
-      test = new TestUpload({
-        testName,
-        description,
-        subject,
-        topic,
-        duration: parseInt(duration),
-        createdBy: userId,
-        files: [
-          {
-            filename: req.file.filename,
-            originalName: req.file.originalname,
-            path: req.file.path,
-            size: req.file.size,
-            uploadedBy: userId,
-            version: 1,
-            isActive: true,
-          },
-        ],
+    // FILE DATA
+    const fileSubdoc = {
+      filename: req.file.filename,
+      originalName: req.file.originalname,
+      path: req.file.path,
+      size: req.file.size,
+      uploadedBy: userId,
+      version: 1,
+      isActive: true,
+    };
+
+    // Find course
+    let courseDoc = await TestUpload.findOne({
+      courseTitle: normalizedCourseTitle,
+    });
+
+    const newTest = {
+      testName: normalizedTestName,
+      description,
+      subject,
+      topic,
+      totalQuestion: 0,
+      duration: Number(duration),
+      file: fileSubdoc,
+      version: 1,
+      createdBy: userId,
+      status: "active",
+    };
+    if (!courseDoc) {
+      // Create new course with first test
+      courseDoc = new TestUpload({
+        courseTitle: normalizedCourseTitle,
+        tests: [newTest],
+        lastUpdatedBy: userId,
         currentVersion: 1,
       });
-    } else {
-      // Add new file to existing test
-      const nextVersion = test.currentVersion + 1;
 
-      test.files.push({
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        path: req.file.path,
-        size: req.file.size,
-        uploadedBy: userId,
-        version: nextVersion,
-        isActive: true,
+      if (Number(duration) <= 0) {
+        return res
+          .status(400)
+          .json({ message: "Duration must be greater than 0" });
+      }
+
+      await courseDoc.save();
+
+      return res.status(201).json({
+        message: "Course created and test uploaded successfully",
+        courseId: courseDoc._id,
+        test: courseDoc.tests[0],
       });
-
-      test.currentVersion = nextVersion;
-      test.lastUpdatedBy = userId;
-      test.description = description || test.description;
-      test.subject = subject || test.subject;
-      test.topic = topic || test.topic;
-      test.duration = duration || test.duration;
     }
 
-    await test.save();
+    // COURSE EXISTS → ALWAYS ADD NEW TEST (NO REPLACING)
+    courseDoc.tests.push(newTest);
+    courseDoc.currentVersion = (courseDoc.currentVersion || 0) + 1;
+    courseDoc.lastUpdatedBy = userId;
 
-    return res.status(200).json({
-      message:
-        test.files.length === 1
-          ? "Test created successfully"
-          : "File uploaded successfully",
-      test: {
-        _id: test._id,
-        testName: test.testName,
-        totalFiles: test.files.length,
-        currentVersion: test.currentVersion,
-        files: test.files,
-      },
+    await courseDoc.save();
+
+    return res.status(201).json({
+      message: "New test added successfully",
+      courseId: courseDoc._id,
+      test: newTest,
     });
   } catch (error) {
-    console.log("Upload error:", error);
-
-    // More specific error handling
-    if (error.name === "ValidationError") {
-      return res.status(400).json({
-        message: "Validation error",
-        error: error.message,
-      });
-    }
-
-    if (error.code === 11000) {
-      return res.status(400).json({
-        message: "Test name must be unique",
-      });
-    }
-
-    res.status(500).json({
-      message: "Server error",
-      error: error.message,
-    });
+    console.error("Upload error:", error);
+    return res
+      .status(500)
+      .json({ message: "Server error", error: error.message });
   }
 };

@@ -58,6 +58,8 @@ export default function CoursePage() {
           `${serverURL}/api/test/testuploads?courseTitle=${courseTitle}`
         );
         const testData = await testRes.json();
+        // console.log(testData);
+
         setTests(testData || []);
       } catch (err) {
         console.error("CoursePage fetch error:", err);
@@ -70,7 +72,8 @@ export default function CoursePage() {
   }, [courseTitle, serverURL]);
 
   const handleStartTest = (test) => {
-    navigate(`/test/start/${test._id}`);
+    // console.log("-?", courseTitle);
+    navigate(`/test/${courseTitle}/${test._id}`);
   };
 
   const handlePdfView = (material) => {

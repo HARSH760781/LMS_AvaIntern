@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 
 const TestEnvironment = () => {
-  const { testId } = useParams();
+  const { courseTitle, testId } = useParams();
   const navigate = useNavigate();
   const serverURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -57,19 +57,22 @@ const TestEnvironment = () => {
       try {
         setLoading(true);
         setError("");
-
-        const res = await fetch(`${serverURL}/api/test/single/${testId}`);
+        const res = await fetch(
+          `${serverURL}/api/test/single/${courseTitle}/${testId}`
+        );
         if (!res.ok) throw new Error(`Failed to fetch test: ${res.status}`);
         const data = await res.json();
+        // console.log("dat->", data);
 
         setTestData(data);
         setTimeLeft((data.duration || 30) * 60);
 
-        if (data.files && data.files.length > 0) {
-          await processExcelFile(data.files[0]);
+        if (data.file) {
+          await processExcelFile(data.file);
         } else {
           throw new Error("No Excel file found in test data");
         }
+        // console.log("processing.....");
 
         setLoading(false);
       } catch (err) {
@@ -85,10 +88,18 @@ const TestEnvironment = () => {
   // ----------------------- Process Excel -----------------------
   const processExcelFile = async (fileData) => {
     try {
-      if (!fileData || !fileData.filename) throw new Error("Invalid file data");
+      if (!fileData || !fileData.filename) {
+        console.warn("No valid Excel file provided. Skipping questions.");
+        setQuestions([]);
+        return;
+      }
+      // console.log(fileData);
 
       const res = await fetch(`${serverURL}/uploadTest/${fileData.filename}`);
-      if (!res.ok) throw new Error(`Failed to fetch file: ${res.status}`);
+      if (!res.ok)
+        throw new Error(
+          `Failed to fetch file: ${res.status} - ${res.statusText}`
+        );
 
       const blob = await res.blob();
       const arrayBuffer = await blob.arrayBuffer();
@@ -116,6 +127,7 @@ const TestEnvironment = () => {
     } catch (err) {
       console.error(err);
       setError(err.message);
+      setQuestions([]);
     }
   };
 
