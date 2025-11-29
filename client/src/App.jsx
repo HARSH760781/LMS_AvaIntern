@@ -28,6 +28,7 @@ import { Toaster } from "react-hot-toast";
 import UploadProgram from "./pages/UploadProgram";
 import TestFileView from "./pages/TestFileView";
 import CourseLearnPage from "./components/common/CourseLearnPage";
+import VerifyAccess from "./components/common/AccessProtectedRoute";
 
 function App() {
   const [hideNavbar, setHideNavbar] = useState(false);
@@ -41,6 +42,7 @@ function App() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+
       <Toaster
         position="top-right"
         reverseOrder={false}
@@ -71,34 +73,110 @@ function App() {
         }}
       />
 
-      {/* Navbar — always mounted, visibility controlled via prop */}
+      {/* Navbar always renders */}
       <Navbar hide={hideNavbar} />
 
       <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100">
         <Routes>
-          {/* Public routes */}
+          {/* PUBLIC ROUTES */}
           <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/course/live-tests" element={<LiveTests />} />
-          <Route path="/start-test/:id" element={<StartTest />} />
-          <Route path="/course/typing-tests" element={<TypingTest />} />
-          <Route path="/programming-test" element={<ProgrammingPractice />} />
+
+          {/* PROTECTED ROUTES (VerifyAccess applied to ALL below) */}
+          <Route
+            path="/course/live-tests"
+            element={
+              <VerifyAccess>
+                <LiveTests />
+              </VerifyAccess>
+            }
+          />
+
+          <Route
+            path="/start-test/:id"
+            element={
+              <VerifyAccess>
+                <StartTest />
+              </VerifyAccess>
+            }
+          />
+
+          <Route
+            path="/course/typing-tests"
+            element={
+              <VerifyAccess>
+                <TypingTest />
+              </VerifyAccess>
+            }
+          />
+
+          <Route
+            path="/programming-test"
+            element={
+              <VerifyAccess>
+                <ProgrammingPractice />
+              </VerifyAccess>
+            }
+          />
+
           <Route
             path="/test/:courseTitle/:testId"
-            element={<TestEnvironment />}
+            element={
+              <VerifyAccess>
+                <TestEnvironment />
+              </VerifyAccess>
+            }
           />
-          <Route path="/test/view/:id" element={<TestFileView />} />
-          <Route path="/course/:courseTitle" element={<CoursePage />} />
+
+          <Route
+            path="/test/view/:id"
+            element={
+              <VerifyAccess>
+                <TestFileView />
+              </VerifyAccess>
+            }
+          />
+
+          <Route
+            path="/course/:courseTitle"
+            element={
+              <VerifyAccess>
+                <CoursePage />
+              </VerifyAccess>
+            }
+          />
+
           <Route
             path="/course/:category/:courseTitle"
-            element={<LearningEnvironment />}
+            element={
+              <VerifyAccess>
+                <LearningEnvironment />
+              </VerifyAccess>
+            }
           />
-          <Route path="/learn/:courseTitle" element={<CourseLearnPage />} />
 
-          <Route element={<ProtectedAdminRoute />}>
+          <Route
+            path="/learn/:courseTitle"
+            element={
+              <VerifyAccess>
+                <CourseLearnPage />
+              </VerifyAccess>
+            }
+          />
+
+          {/* ADMIN ROUTES */}
+          <Route
+            element={
+              <ProtectedAdminRoute>
+                <VerifyAccess>
+                  {/* Protect both admin login + sheet access */}
+                </VerifyAccess>
+              </ProtectedAdminRoute>
+            }
+          >
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/users" element={<User />} />
             <Route path="/feedback" element={<Feedback />} />
@@ -113,6 +191,8 @@ function App() {
               element={<UploadLearningMaterial />}
             />
           </Route>
+
+          {/* NOT FOUND */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

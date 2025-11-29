@@ -72,7 +72,6 @@ export default function CoursePage() {
   }, [courseTitle, serverURL]);
 
   const handleStartTest = (test) => {
-    // console.log("-?", courseTitle);
     navigate(`/test/${courseTitle}/${test._id}`);
   };
 
