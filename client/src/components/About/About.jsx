@@ -1,5 +1,5 @@
 import React from "react";
-import Robo from "../../assets/react.svg";
+import Robo from "../../../public/home Icon.gif";
 import { Rocket, Sparkles, Target } from "lucide-react";
 
 const About = () => {

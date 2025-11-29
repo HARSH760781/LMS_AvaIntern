@@ -83,7 +83,7 @@ const Home = () => {
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 sm:p-8 border border-blue-100">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
               {/* Left Text Section */}
-              <div className="flex-1 text-center sm:text-left">
+              <div className="flex-1 text-start sm:text-left">
                 <p className="text-gray-700 text-base sm:text-lg leading-relaxed">
                   Here's what's happening with your account today. Stay focused,
                   stay consistent, and keep making progress!
