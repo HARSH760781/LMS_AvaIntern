@@ -85,7 +85,7 @@ function App() {
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/profile" element={<ProfilePage />} />
 
-          {/* PROTECTED ROUTES (VerifyAccess applied to ALL below) */}
+          {/* USER PROTECTED ROUTES */}
           <Route
             path="/course/live-tests"
             element={
@@ -167,14 +167,12 @@ function App() {
             }
           />
 
-          {/* ADMIN ROUTES */}
+          {/* ✅ FULLY PROTECTED ADMIN ROUTES */}
           <Route
             element={
-              <ProtectedAdminRoute>
-                <VerifyAccess>
-                  {/* Protect both admin login + sheet access */}
-                </VerifyAccess>
-              </ProtectedAdminRoute>
+              <VerifyAccess>
+                <ProtectedAdminRoute />
+              </VerifyAccess>
             }
           >
             <Route path="/admin" element={<AdminDashboard />} />
