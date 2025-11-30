@@ -11,13 +11,13 @@ const courseData = [
     route: "/aptitude-tests",
     description: "Master quantitative and logical reasoning",
   },
-  {
-    imageUrl:
-      "https://ik.imagekit.io/y7csnuuzj/Icons/pROGRAMMING.png?updatedAt=1763706236186",
-    courseName: "Programming Tests",
-    route: "/programming-tests",
-    description: "Code and solve complex problems",
-  },
+  // {
+  //   imageUrl:
+  //     "https://ik.imagekit.io/y7csnuuzj/Icons/pROGRAMMING.png?updatedAt=1763706236186",
+  //   courseName: "Programming Tests",
+  //   route: "/programming-tests",
+  //   description: "Code and solve complex problems",
+  // },
   {
     imageUrl:
       "https://ik.imagekit.io/y7csnuuzj/Icons/tYPING.png?updatedAt=1763706236099",

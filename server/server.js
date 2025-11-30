@@ -22,6 +22,7 @@ app.use(express.json());
 
 // Serve uploaded images
 app.use("/uploads", express.static("uploads"));
+app.use("/learning-materials", express.static("learning-materials"));
 app.use("/uploadTest", express.static(path.join(process.cwd(), "uploadTest")));
 
 app.use("/api/auth", authRoutes);

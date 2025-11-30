@@ -9,7 +9,7 @@ export default function PdfViewer({ material, onClose, serverURL }) {
 
   if (!material) return null;
 
-  const pdfUrl = `${serverURL}${material.filePath}#toolbar=0&navpanes=0&scrollbar=0`;
+  const pdfUrl = `${serverURL}/${material.filePath}#toolbar=0&navpanes=0&scrollbar=0`;
 
   const zoomIn = () => setScale((p) => Math.min(p + 0.2, 3));
   const zoomOut = () => setScale((p) => Math.max(p - 0.2, 0.6));

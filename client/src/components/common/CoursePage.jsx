@@ -76,6 +76,7 @@ export default function CoursePage() {
   };
 
   const handlePdfView = (material) => {
+    // console.log(material);
     if (material?.filePath) setCurrentMaterial(material);
     else alert("File not available.");
   };

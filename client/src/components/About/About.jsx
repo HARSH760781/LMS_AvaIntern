@@ -1,5 +1,5 @@
 import React from "react";
-import side_logo from "../../../public/logo cap.jpg";
+import side_logo from "../../assets/logo cap.jpg";
 import { Rocket, Sparkles, Target } from "lucide-react";
 
 const About = () => {

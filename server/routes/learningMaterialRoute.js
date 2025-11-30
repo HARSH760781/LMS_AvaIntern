@@ -6,9 +6,19 @@ import { adminAuthMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
+import fs from "fs";
+import path from "path";
+
+// Ensure upload directory exists
+const uploadDir = path.join(process.cwd(), "learning-materials");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+  console.log("📁 Created missing folder:", uploadDir);
+}
+
 // Multer setup
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/learning-materials/"),
+  destination: (req, file, cb) => cb(null, "learning-materials/"),
   filename: (req, file, cb) => {
     const ext = file.originalname.split(".").pop();
     cb(null, `material-${Date.now()}.${ext}`);
@@ -44,7 +54,7 @@ router.post("/", adminAuthMiddleware, upload, async (req, res) => {
           const file = req.files[fileIndex];
           sub.materials.push({
             fileName: file.originalname,
-            filePath: `/uploads/learning-materials/${file.filename}`,
+            filePath: `learning-materials/${file.filename}`,
           });
           fileIndex++;
         });

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import logo from "../../../public/ava logo.png";
-import logo_cap from "../../../public/ava_Cap.png";
+import logo from "../../assets/ava logo.png";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
