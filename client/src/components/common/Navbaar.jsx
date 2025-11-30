@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import logo from "../../../public/ava logo.png";
+import logo_cap from "../../../public/ava_Cap.png";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
@@ -54,12 +56,11 @@ const Navbar = () => {
           onClick={() => navigate("/")}
           className="flex items-center space-x-3 cursor-pointer"
         >
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-md">
-            <BookOpen className="w-5 h-5 text-white" />
-          </div>
-          <h1 className="text-xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            EduLMS
-          </h1>
+          <img
+            src={logo}
+            alt="EduLMS Logo"
+            className="h-10 sm:h-12 md:h-14 lg:h-16  w-auto object-contain"
+          />
         </div>
 
         {/* Desktop Menu */}

@@ -24,6 +24,11 @@ const UploadTest = () => {
     "quantitative-aptitude",
     "logical-reasoning",
     "interview-skills",
+    "c",
+    "cpp",
+    "java",
+    "python",
+    "html",
   ];
 
   const handleChange = (e) => {

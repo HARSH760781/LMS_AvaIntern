@@ -26,8 +26,6 @@ const Competitive = () => {
         <span> Competitive Coding</span>
       </div>
 
-      {/* <hr className="border-blue-700 font-bold border-[2px] mt-3 mb-6 w-24 ml-4" /> */}
-
       {/* Responsive Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-1 lg:grid-cols-3 gap-6 px-3">
         {courseData.map((item, index) => (

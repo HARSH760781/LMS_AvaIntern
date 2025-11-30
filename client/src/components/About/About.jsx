@@ -1,21 +1,34 @@
 import React from "react";
-import Robo from "../../../public/home Icon.gif";
+import side_logo from "../../../public/logo cap.jpg";
 import { Rocket, Sparkles, Target } from "lucide-react";
 
 const About = () => {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 hover:shadow-lg transition-all duration-300">
+    <div className=" rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8 hover:shadow-lg transition-all duration-300">
       <div className="flex flex-col lg:flex-row items-center gap-8">
         {/* Left - Image */}
+        {/* Left - Animated Image */}
         <div className="flex-shrink-0">
           <div className="relative">
+            {/* FULLY ANIMATED IMAGE */}
             <img
-              src={Robo}
-              alt="Fresherbot AI"
-              className="w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 rounded-2xl object-cover shadow-lg"
+              src={side_logo}
+              alt="Ava Intern AI"
+              className="
+    w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48
+    rounded-2xl object-cover shadow-lg
+
+    animate-ai-pulse      /* glowing GIF-like loop */
+    animate-ai-float      /* floating like a GIF */
+    animate-ai-spin       /* slow continuous spin */
+
+    transition-all duration-300
+  "
             />
-            <div className="absolute -top-2 -right-2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-white" />
+
+            {/* Glow Icon */}
+            <div className="absolute -top-2 -right-2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center shadow-md">
+              <Sparkles className="w-4 h-4 text-white animate-pulse" />
             </div>
           </div>
         </div>
@@ -25,7 +38,8 @@ const About = () => {
           <div className="flex items-center justify-center lg:justify-start gap-3 mb-4">
             <Target className="w-6 h-6 text-blue-600" />
             <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Welcome to Fresherbot
+              Welcome to <span className="text-black font-bold">Ava</span>
+              <span className="text-blue-700 font-bold">Intern</span>
             </h2>
           </div>
 
@@ -34,10 +48,11 @@ const About = () => {
           </p>
 
           <p className="text-gray-600 text-sm sm:text-base leading-relaxed mb-6">
-            Step into the future of learning with Fresherbot, an AI-powered
-            platform engineered to elevate your interview preparation and career
-            readiness. Experience cutting-edge tools, personalized guidance, and
-            innovative resources tailored to unlock your true potential.
+            Step into the future of learning with <b>AvaIntern</b>, an AI-driven
+            platform designed to transform the way you grow, learn, and prepare
+            for your career. Experience intelligent tools, personalized learning
+            paths, and industry-ready resources crafted to help you build
+            confidence and unlock your true potential.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">

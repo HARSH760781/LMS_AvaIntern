@@ -50,7 +50,11 @@ const UploadLearningMaterial = () => {
       "java-fullstack",
       "python-fullstack",
     ],
-    "Competitive Coding": ["c++", "java", "python"],
+    "Competitive Coding": [
+      "100-cpp-programs",
+      "100-java-programs",
+      "100-python-programs",
+    ],
     "Company Mocks": ["company-mocks"],
   };
 
