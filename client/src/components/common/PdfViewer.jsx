@@ -1,167 +1,216 @@
-import React, { useState, useEffect } from "react";
-import { X, Minus, Plus, Maximize, Minimize } from "lucide-react";
+// src/components/common/ResponsivePdfViewer.jsx
+import React, { useState, useRef, useEffect } from "react";
+import { X, Minus, Plus, Maximize2, PanelTop } from "lucide-react";
 
-export default function PdfViewer({ material, onClose, serverURL }) {
-  const [scale, setScale] = useState(1.1);
+export default function ResponsivePdfViewer({
+  material,
+  onClose,
+  serverURL = "",
+}) {
+  const [zoomLevel, setZoomLevel] = useState(100);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const containerRef = useRef(null);
+  const iframeRef = useRef(null);
 
   if (!material) return null;
 
-  const pdfUrl = `${serverURL}/${material.filePath}#toolbar=0&navpanes=0&scrollbar=0`;
+  // Build the PDF URL
+  const pdfUrl = serverURL
+    ? `${serverURL}/${material.filePath}#view=fitH&toolbar=0`
+    : `${material.filePath}#view=fitH&toolbar=0`;
 
   // Zoom Controls
-  const zoomIn = () => setScale((p) => Math.min(p + 0.15, 3));
-  const zoomOut = () => setScale((p) => Math.max(p - 0.15, 0.5));
-  const resetZoom = () => setScale(1.1);
-
-  const toggleFullscreen = () => {
-    setIsFullscreen((prev) => !prev);
+  const handleZoomIn = () => {
+    setZoomLevel((prev) => Math.min(prev + 10, 200));
   };
 
-  // Keyboard Shortcuts
-  useEffect(() => {
-    const handleKeys = (e) => {
-      if (e.ctrlKey || e.metaKey) {
-        if (e.key === "+" || e.key === "=") {
-          e.preventDefault();
-          zoomIn();
-        } else if (e.key === "-") {
-          e.preventDefault();
-          zoomOut();
-        } else if (e.key === "0") {
-          e.preventDefault();
-          resetZoom();
+  const handleZoomOut = () => {
+    setZoomLevel((prev) => Math.max(prev - 10, 50));
+  };
+
+  const handleZoomReset = () => {
+    setZoomLevel(100);
+  };
+
+  // Fullscreen Toggle
+  const toggleFullscreen = () => {
+    if (!isFullscreen) {
+      if (containerRef.current) {
+        if (containerRef.current.requestFullscreen) {
+          containerRef.current.requestFullscreen();
+        } else if (containerRef.current.webkitRequestFullscreen) {
+          containerRef.current.webkitRequestFullscreen();
+        } else if (containerRef.current.msRequestFullscreen) {
+          containerRef.current.msRequestFullscreen();
         }
       }
+      setIsFullscreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+      }
+      setIsFullscreen(false);
+    }
+  };
 
-      if (e.key === "Escape") onClose();
+  // Handle fullscreen change events
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
     };
 
-    window.addEventListener("keydown", handleKeys);
-    return () => window.removeEventListener("keydown", handleKeys);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    document.addEventListener("msfullscreenchange", handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener(
+        "webkitfullscreenchange",
+        handleFullscreenChange
+      );
+      document.removeEventListener(
+        "msfullscreenchange",
+        handleFullscreenChange
+      );
+    };
   }, []);
 
-  const handleIframeLoad = () => setIsLoading(false);
+  // Handle keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!material) return;
+
+      // Ctrl + Plus or Ctrl + = for zoom in
+      if ((e.ctrlKey || e.metaKey) && (e.key === "+" || e.key === "=")) {
+        e.preventDefault();
+        handleZoomIn();
+      }
+      // Ctrl + Minus for zoom out
+      else if ((e.ctrlKey || e.metaKey) && e.key === "-") {
+        e.preventDefault();
+        handleZoomOut();
+      }
+      // Ctrl + 0 for reset zoom
+      else if ((e.ctrlKey || e.metaKey) && e.key === "0") {
+        e.preventDefault();
+        handleZoomReset();
+      }
+      // Escape to close
+      else if (e.key === "Escape") {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [material, onClose]);
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-500 ${
-        isFullscreen ? "p-0" : "p-5"
-      }`}
-      style={{
-        backdropFilter: "blur(12px)",
-        background: "rgba(0,0,0,0.5)",
-      }}
+      ref={containerRef}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 p-4"
     >
-      {/* Viewer Container */}
-      <div
-        className={`flex flex-col shadow-2xl bg-white/20 rounded-2xl border border-white/30 backdrop-blur-xl transition-all duration-500 ${
-          isFullscreen
-            ? "w-full h-full rounded-none"
-            : "w-full max-w-7xl h-[95vh]"
-        }`}
-      >
-        {/* HEADER */}
-        <div className="flex items-center justify-between px-5 py-3 bg-white/30 border-b border-white/20 rounded-t-2xl">
-          <h2 className="text-white font-semibold text-lg tracking-wide truncate">
-            {material.fileName}
-          </h2>
-
-          <div className="flex items-center space-x-3">
-            {/* Zoom Controls */}
-            <div className="flex items-center space-x-2 bg-white/20 px-3 py-1 rounded-xl border border-white/30">
-              <button
-                onClick={zoomOut}
-                disabled={scale <= 0.5}
-                className="p-1 hover:bg-white/20 rounded disabled:opacity-30"
-              >
-                <Minus className="text-white w-4 h-4" />
-              </button>
-
-              <span className="text-white text-sm min-w-[45px] text-center">
-                {Math.round(scale * 100)}%
-              </span>
-
-              <button
-                onClick={zoomIn}
-                disabled={scale >= 3}
-                className="p-1 hover:bg-white/20 rounded disabled:opacity-30"
-              >
-                <Plus className="text-white w-4 h-4" />
-              </button>
-
-              <button
-                onClick={resetZoom}
-                className="text-white text-xs ml-2 hover:underline"
-              >
-                Reset
-              </button>
+      <div className="relative w-full max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+          <div className="flex items-center gap-3">
+            <div className="bg-white p-2 rounded-lg">
+              <PanelTop className="w-5 h-5 text-blue-600" />
             </div>
+            <h2 className="text-xl font-bold truncate">{material.fileName}</h2>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Zoom Controls */}
+            {/* <div className="flex items-center gap-2 bg-white bg-opacity-20 rounded-lg px-3 py-1">
+              <button
+                onClick={handleZoomOut}
+                className="p-1 hover:bg-white hover:bg-opacity-30 rounded transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Zoom Out"
+                disabled={zoomLevel <= 50}
+              >
+                <Minus className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={handleZoomReset}
+                className="px-2 py-1 text-sm font-medium min-w-[60px] text-center hover:bg-white hover:bg-opacity-30 rounded transition-all duration-200"
+                aria-label="Reset Zoom"
+              >
+                {zoomLevel}%
+              </button>
+
+              <button
+                onClick={handleZoomIn}
+                className="p-1 hover:bg-white hover:bg-opacity-30 rounded transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Zoom In"
+                disabled={zoomLevel >= 200}
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div> */}
 
             {/* Fullscreen Toggle */}
             <button
               onClick={toggleFullscreen}
-              className="p-2 hover:bg-white/20 rounded-xl border border-white/30"
+              className="p-2 rounded-full hover:bg-white hover:bg-opacity-30 transition-all duration-200"
+              aria-label={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
             >
-              {isFullscreen ? (
-                <Minimize className="text-white w-4 h-4" />
-              ) : (
-                <Maximize className="text-white w-4 h-4" />
-              )}
+              <Maximize2 className="w-5 h-5" />
             </button>
 
-            {/* Close */}
+            {/* Close Button */}
             <button
               onClick={onClose}
-              className="p-2 hover:bg-red-400/40 rounded-xl bg-red-500/20"
+              className="p-2 rounded-full hover:bg-white hover:bg-opacity-30 transition-all duration-200"
+              aria-label="Close PDF viewer"
             >
-              <X className="text-white w-4 h-4" />
+              <X className="w-6 h-6" />
             </button>
           </div>
         </div>
 
-        {/* PDF BODY */}
-        <div className="flex-1 relative overflow-auto bg-gray-100/40">
-          {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10 backdrop-blur-md">
-              <div className="text-center">
-                <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto" />
-                <p className="text-gray-800 mt-3 font-medium">
-                  Loading your document…
-                </p>
-              </div>
-            </div>
-          )}
-
-          <div className="flex justify-center items-start p-10">
-            <div
-              style={{
-                transform: `scale(${scale})`,
-                transformOrigin: "top center",
-                transition: "transform 0.25s ease",
-              }}
-              className="bg-white shadow-xl rounded-lg"
-            >
-              <iframe
-                src={pdfUrl}
-                onLoad={handleIframeLoad}
-                className="border-0 rounded-lg"
-                style={{
-                  width: "816px",
-                  height: "1056px",
-                }}
-                title="PDF"
-              />
-            </div>
+        {/* Loading Overlay */}
+        {loading && (
+          <div className="absolute inset-0 bg-white z-10 flex flex-col items-center justify-center">
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p className="text-gray-600 text-lg">Loading PDF...</p>
           </div>
-        </div>
+        )}
 
-        {/* FOOTER */}
-        <div className="px-5 py-2 bg-white/30 border-t border-white/20 text-white text-xs tracking-wide flex justify-between">
-          <span>Zoom: {Math.round(scale * 100)}%</span>
-          <span>{isFullscreen ? "Fullscreen mode" : "Normal mode"}</span>
-          <span>Secure PDF Viewer</span>
+        {/* PDF Viewer */}
+        <div className="h-[75vh] relative">
+          <iframe
+            ref={iframeRef}
+            src={pdfUrl}
+            title={material.fileName}
+            className="w-full h-full border-0"
+            allow="fullscreen"
+            loading="lazy"
+            onLoad={() => setLoading(false)}
+            style={{
+              transform: `scale(${zoomLevel / 100})`,
+              transformOrigin: "0 0",
+              width: `${100 * (100 / zoomLevel)}%`,
+              height: `${100 * (100 / zoomLevel)}%`,
+              transition: "transform 0.2s ease",
+            }}
+          />
+
+          {/* Zoom Hint
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-60 text-white text-sm px-4 py-2 rounded-full backdrop-blur-sm">
+            Use <kbd className="px-2 py-1 bg-gray-800 rounded mx-1">Ctrl</kbd> +
+            <kbd className="px-2 py-1 bg-gray-800 rounded mx-1">+</kbd> /
+            <kbd className="px-2 py-1 bg-gray-800 rounded mx-1">-</kbd> to zoom
+            •<kbd className="px-2 py-1 bg-gray-800 rounded mx-1">Esc</kbd> to
+            close
+          </div> */}
         </div>
       </div>
     </div>

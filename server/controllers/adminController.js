@@ -58,14 +58,14 @@ export const sendFeedback = async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "Gmail", // or your email service
       auth: {
-        user: process.env.SMTP_EMAIL, // set in your .env
-        pass: process.env.SMTP_PASSWORD,
+        user: process.env.EMAIL_USER, // set in your .env
+        pass: process.env.EMAIL_PASS,
       },
     });
 
     // Send email
     await transporter.sendMail({
-      from: `"EduLMS Admin" <${process.env.SMTP_EMAIL}>`,
+      from: `"AvaIntern Admin" <${process.env.SMTP_EMAIL}>`,
       to: email,
       subject,
       text: message,

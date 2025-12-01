@@ -49,7 +49,7 @@ export default function TestFileView() {
   const [expandedQuestions, setExpandedQuestions] = useState({});
   const [completedQuestions, setCompletedQuestions] = useState({});
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [viewMode, setViewMode] = useState("grid"); // "grid" or "list"
+  const [viewMode, setViewMode] = useState("list"); // "grid" or "list"
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState(null);
   const [showStats, setShowStats] = useState(true);
@@ -355,7 +355,7 @@ export default function TestFileView() {
       className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50"
     >
       {/* Sticky Header */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
+      <header className="sticky top-0  bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Mobile Top Bar */}
           <div className="flex items-center justify-between py-4 lg:hidden">
@@ -409,7 +409,7 @@ export default function TestFileView() {
                   className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 bg-gray-100 hover:bg-gray-200 px-4 py-2.5 rounded-xl font-medium group"
                 >
                   <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                  <span>Back to Course</span>
+                  <span>Back</span>
                 </button>
                 <div className="w-px h-8 bg-gray-300"></div>
                 <div>
@@ -951,14 +951,14 @@ export default function TestFileView() {
                           </div>
                         </div>
 
-                        {/* <div>
+                        <div>
                           <h4 className="font-semibold text-gray-900 mb-2 text-sm">
                             Sample Code
                           </h4>
                           <pre className="bg-gray-900 text-gray-100 rounded-lg p-3 text-sm overflow-x-auto">
                             <code>{question.codeSnippet}</code>
                           </pre>
-                        </div> */}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -1106,14 +1106,14 @@ export default function TestFileView() {
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-2">
-                                    <button
+                                    {/* <button
                                       onClick={() =>
                                         setSelectedQuestion(question)
                                       }
                                       className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm sm:text-base"
                                     >
                                       Start Solving
-                                    </button>
+                                    </button> */}
                                     <button
                                       className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
                                       aria-label="More options"

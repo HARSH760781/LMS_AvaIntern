@@ -286,133 +286,152 @@ export default function CoursePage() {
             {topics.map((topic, idx) => (
               <section
                 key={idx}
-                className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden"
+                className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 overflow-hidden"
               >
+                {/* Topic Header - Mobile Optimized */}
                 <header>
                   <button
-                    className="w-full flex justify-between items-center p-5 md:p-6 text-left hover:bg-gray-50 transition"
+                    className="w-full flex justify-between items-center p-3 sm:p-4 md:p-6 text-left hover:bg-gray-50 transition active:bg-gray-100"
                     onClick={() =>
                       setOpenTopicIndex(openTopicIndex === idx ? null : idx)
                     }
                     aria-expanded={openTopicIndex === idx}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow">
-                        <FolderOpen className="w-6 h-6 text-white" />
+                    {/* Left side - Topic info */}
+                    <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+                      {/* Icon - Responsive sizing */}
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow flex-shrink-0">
+                        <FolderOpen className="w-4 h-4 sm:w-5 sm:h-6 text-white" />
                       </div>
-                      <div>
-                        <h3
-                          className="font-semibold text-gray-900"
-                          style={styles.sectionTitle}
-                        >
+
+                      {/* Text content */}
+                      <div className="flex-1 min-w-0">
+                        <h6 className="font-semibold text-gray-900 text-sm sm:text-base md:text-lg truncate">
                           {topic.topicTitle}
-                        </h3>
-                        <p className="text-gray-600 text-sm mt-1">
-                          {topic.subTopics?.length || 0} sub-topics • Click to{" "}
+                        </h6>
+                        <p className="text-gray-600 text-xs sm:text-sm mt-0.5 sm:mt-1">
+                          {topic.subTopics?.length || 0} sub-topics • Tap to{" "}
                           {openTopicIndex === idx ? "collapse" : "expand"}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm text-gray-500">
+                    {/* Right side - Collapse/Expand indicator */}
+                    <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 ml-2">
+                      {/* Hide text on small screens */}
+                      <span className="hidden sm:inline text-sm text-gray-500">
                         {openTopicIndex === idx ? "Collapse" : "Expand"}
                       </span>
                       {openTopicIndex === idx ? (
-                        <ChevronUp className="w-5 h-5 text-gray-400" />
+                        <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                       ) : (
-                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                        <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                       )}
                     </div>
                   </button>
                 </header>
 
+                {/* Sub-topics - Mobile Optimized */}
                 {openTopicIndex === idx && (
-                  <div className="border-t border-gray-200 bg-gray-50 p-5 md:p-6">
-                    <div className="space-y-6">
+                  <div className="border-t border-gray-200 bg-gray-50">
+                    <div className="p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6">
                       {topic.subTopics?.map((sub, subIdx) => (
                         <div
                           key={subIdx}
-                          className="bg-white rounded-xl border border-gray-200 p-4 md:p-5"
+                          className="bg-white rounded-lg sm:rounded-xl border border-gray-200 p-3 sm:p-4 md:p-5"
                         >
-                          <div className="flex items-center justify-between mb-4">
-                            <h4 className="font-semibold text-gray-900">
-                              <FileText className="inline-block mr-2" />
-                              {sub.subTopicTitle}
-                            </h4>
-                            <div className="text-sm text-gray-600">
+                          {/* Sub-topic Header */}
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 mb-3 sm:mb-4">
+                            <h6 className="font-semibold text-gray-900 text-sm sm:text-base flex items-center gap-1.5">
+                              <FileText className="w-4 h-4 flex-shrink-0" />
+                              <span className="line-clamp-1 sm:line-clamp-2">
+                                {sub.subTopicTitle}
+                              </span>
+                            </h6>
+                            <div className="text-xs sm:text-sm text-gray-600 bg-gray-100 px-2 py-1 rounded-full self-start sm:self-auto">
                               {sub.materials?.length || 0} materials
                             </div>
                           </div>
 
                           {sub.materials?.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                               {sub.materials.map((material, mIdx) => (
                                 <article
                                   key={mIdx}
-                                  className={`flex flex-col h-full rounded-lg border transition ${
+                                  className={`flex flex-col h-full rounded-lg sm:rounded-xl border transition-all ${
                                     completedMaterials[material._id]
                                       ? "bg-green-50 border-green-300"
-                                      : "bg-white border-gray-200 hover:shadow"
+                                      : "bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm"
                                   }`}
                                 >
-                                  {/* Make content stretch so buttons sit at bottom */}
-                                  <div className="p-4 flex-1 min-h-0">
-                                    <div className="flex items-start gap-3">
+                                  {/* Content area - Mobile optimized */}
+                                  <div className="p-3 sm:p-4 flex-1">
+                                    <div className="flex items-start gap-2 sm:gap-3">
                                       <FileText
-                                        className={`w-5 h-5 flex-shrink-0 mt-1 ${
+                                        className={`w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 mt-0.5 ${
                                           completedMaterials[material._id]
                                             ? "text-green-600"
                                             : "text-gray-400"
                                         }`}
                                       />
-                                      <div className="min-w-0">
-                                        <h5 className="font-semibold text-gray-900 truncate">
+                                      <div className="flex-1 min-w-0">
+                                        {/* File name - Responsive truncation */}
+                                        <h6 className="font-medium text-gray-900 text-xs sm:text-sm truncate">
                                           {material.fileName ||
                                             `Material ${mIdx + 1}`}
-                                        </h5>
-                                        <p className="text-sm text-gray-600 mt-1">
-                                          Size:{" "}
-                                          {material.fileSize
-                                            ? `${(
-                                                material.fileSize / 1024
-                                              ).toFixed(2)} KB`
-                                            : "—"}
-                                        </p>
+                                        </h6>
+                                        {/* File info - Stack on mobile */}
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 mt-1">
+                                          <p className="text-gray-600 text-xs">
+                                            Size:{" "}
+                                            {material.fileSize
+                                              ? `${(
+                                                  material.fileSize / 1024
+                                                ).toFixed(2)} KB`
+                                              : "—"}
+                                          </p>
+                                          {completedMaterials[material._id] && (
+                                            <span className="text-xs text-green-700 bg-green-100 px-1.5 py-0.5 rounded-full self-start sm:self-auto">
+                                              Completed
+                                            </span>
+                                          )}
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
 
-                                  <div className="p-4 pt-0 flex items-center justify-between gap-3">
+                                  {/* Action buttons - Stack on mobile */}
+                                  <div className="p-3 sm:p-4 pt-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
                                     <button
                                       onClick={() => handlePdfView(material)}
-                                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition"
+                                      className="flex-1 inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition text-xs sm:text-sm active:scale-95"
                                     >
-                                      <FileText className="w-4 h-4" />
-                                      Open PDF
+                                      <FileText className="w-3 h-3 sm:w-4 sm:h-4" />
+                                      <span>Open PDF</span>
                                     </button>
 
                                     <button
                                       onClick={() =>
                                         handleCompleteMaterial(material._id)
                                       }
-                                      className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
+                                      className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition text-xs sm:text-sm ${
                                         completedMaterials[material._id]
-                                          ? "bg-green-600 text-white"
+                                          ? "bg-green-600 text-white hover:bg-green-700"
                                           : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                                      }`}
+                                      } active:scale-95`}
                                     >
                                       {completedMaterials[material._id]
-                                        ? "Completed"
-                                        : "Mark Completed"}
+                                        ? "✓ Completed"
+                                        : "Mark Complete"}
                                     </button>
                                   </div>
                                 </article>
                               ))}
                             </div>
                           ) : (
-                            <div className="text-center py-6 text-gray-500">
-                              No materials available for this sub-topic
+                            <div className="text-center py-6 sm:py-8 text-gray-500 text-sm sm:text-base">
+                              <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-gray-300 mx-auto mb-2" />
+                              <p>No materials available for this sub-topic</p>
                             </div>
                           )}
                         </div>
