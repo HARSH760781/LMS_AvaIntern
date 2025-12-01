@@ -29,6 +29,8 @@ import UploadProgram from "./pages/UploadProgram";
 import TestFileView from "./pages/TestFileView";
 import CourseLearnPage from "./components/common/CourseLearnPage";
 import VerifyAccess from "./components/common/AccessProtectedRoute";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 function App() {
   const [hideNavbar, setHideNavbar] = useState(false);
@@ -84,6 +86,11 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route
+            path="/reset-password/:token"
+            element={<ResetPasswordPage />}
+          />
 
           {/* USER PROTECTED ROUTES */}
           <Route

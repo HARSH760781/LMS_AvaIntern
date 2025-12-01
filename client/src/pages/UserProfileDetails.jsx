@@ -93,6 +93,9 @@ const UserProfileDetails = () => {
       setEditing(false);
       setSelectedImage(null);
       setPreviewImage(null);
+
+      localStorage.setItem("profileImage", updatedUser.profileImage);
+      window.dispatchEvent(new Event("storage"));
     } catch (err) {
       console.error(err);
       alert("Failed to update profile");

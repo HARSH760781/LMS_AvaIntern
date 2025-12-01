@@ -88,12 +88,12 @@ const AccessProtectedRoute = ({ children }) => {
           <div className="w-full text-left bg-white/10 border border-white/20 rounded-xl p-4 space-y-3">
             <div className="flex items-center gap-3 text-white">
               <Mail size={20} className="text-blue-300" />
-              <span className="text-sm">support@example.com</span>
+              <span className="text-sm">support@avaintern.com</span>
             </div>
 
             <div className="flex items-center gap-3 text-white">
               <Phone size={20} className="text-green-300" />
-              <span className="text-sm">+91 98765 43210</span>
+              <span className="text-sm">+91 9606670754</span>
             </div>
           </div>
 

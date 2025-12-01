@@ -1,6 +1,8 @@
 import UserModel from "../models/User.js";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
+import sendEmail from "../utils/sendEmail.js";
 
 export const loginUser = async (req, res) => {
   try {
@@ -130,5 +132,150 @@ export const registerUser = async (req, res) => {
       message: "Registration failed",
       error: error.message,
     });
+  }
+};
+
+// SEND RESET LINK
+export const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await UserModel.findOne({ email });
+
+    if (!user) {
+      return res.json({ success: false, message: "User not found" });
+    }
+
+    // create reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpire = Date.now() + 5 * 60 * 1000; // 5 minutes
+
+    await user.save();
+
+    const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+
+    const message = `
+<div style="
+  font-family: Arial, sans-serif;
+  max-width: 600px;
+  margin: auto;
+  padding: 24px;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  background: #fafafa;
+">
+  
+  <!-- Header -->
+  <h2 style="margin-bottom: 10px; color: #222; font-weight: 600;">
+    Password Reset Request
+  </h2>
+
+  <h3 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 700;">
+    <span style="color: black;">Ava</span><span style="color: #007bff;">Intern</span>
+  </h3>
+
+  <!-- Greeting -->
+  <p style="font-size: 16px; color: #444; line-height: 1.6;">
+    Hello ${user.fullName || "User"},
+  </p>
+
+  <p style="font-size: 15px; color: #555; line-height: 1.6;">
+    We received a request to reset the password associated with your AvaIntern account.
+    If you initiated this request, you can reset your password securely using the button below.
+  </p>
+
+  <!-- Reset Button -->
+  <div style="text-align: center; margin: 30px 0;">
+    <a href="${resetURL}"
+      style="
+        background-color: #007bff;
+        color: white;
+        padding: 12px 26px;
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: 16px;
+        display: inline-block;
+      "
+    >
+      Reset Password
+    </a>
+  </div>
+
+  <p style="font-size: 14px; color: #555; line-height: 1.6;">
+    This link is valid for <strong>5 minutes</strong>.  
+    For security reasons, the link will expire automatically.
+  </p>
+
+  <p style="font-size: 14px; color: #777; line-height: 1.6;">
+    If you did not request a password reset, you may safely ignore this email.
+    Your account remains secure.
+  </p>
+
+  <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0;">
+
+  <!-- Footer -->
+  <p style="font-size: 13px; color: #888; text-align: center; line-height: 1.5;">
+    © ${new Date().getFullYear()} AvaIntern. All rights reserved.<br>
+    This is an automated message — please do not reply.
+  </p>
+</div>
+`;
+
+    await sendEmail(user.email, "Password Reset Link", message);
+
+    res.json({
+      success: true,
+      message: "Password reset link sent to email",
+    });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Error sending reset email" });
+  }
+};
+
+// RESET PASSWORD
+export const resetPassword = async (req, res) => {
+  const resetToken = req.params.token;
+  const { password } = req.body;
+
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  try {
+    const user = await UserModel.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.json({
+        success: false,
+        message: "Invalid or expired token",
+      });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(password, salt);
+
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Password has been reset successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "Something went wrong" });
   }
 };

@@ -55,7 +55,8 @@ const LoginPage = () => {
     <div className="flex justify-center items-center h-screen bg-gray-100 px-4">
       <div className="w-full max-w-md bg-white p-7 rounded-xl shadow-xl">
         <h2 className="text-2xl font-bold text-center text-blue-600 mb-5">
-          Login to EduLMS
+          Login to <span className="text-black font-bold">Ava</span>
+          <span className="text-blue-700 font-bold">Intern</span>
         </h2>
 
         <form className="space-y-4" onSubmit={handleLogin}>
@@ -87,6 +88,14 @@ const LoginPage = () => {
               placeholder="Enter password"
               disabled={loading}
             />
+          </div>
+          <div className="text-right -mt-2">
+            <Link
+              to="/forgot-password"
+              className="text-sm text-blue-600 font-semibold hover:underline"
+            >
+              Forgot Password?
+            </Link>
           </div>
 
           <button

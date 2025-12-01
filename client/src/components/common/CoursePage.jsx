@@ -15,15 +15,6 @@ import {
 import PdfViewer from "../common/PdfViewer";
 import { courseCategories } from "./courseMapping";
 
-/**
- * CoursePage (Ultra-responsive, equal-height cards, clamp-based typography)
- *
- * Notes:
- *  - This file keeps your existing API endpoints and PdfViewer usage.
- *  - Uses inline style clamps for main headings and sub-headings to scale nicely.
- *  - Cards use h-full and flex-col with justify-between to make all cards same height.
- */
-
 export default function CoursePage() {
   const { courseTitle } = useParams();
   const navigate = useNavigate();
