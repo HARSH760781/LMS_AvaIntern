@@ -96,11 +96,20 @@ const UploadProgram = () => {
               >
                 <option value="">-- Select Programming Language --</option>
                 <option value="c">C Programming</option>
-                <option value="c++">C++ Programming</option>
+                <option value="cpp">C++ Programming</option>
                 <option value="java">Java Programming</option>
                 <option value="python">Python Programming</option>
                 <option value="javascript">JavaScript</option>
-                <option value="html-css">HTML & CSS</option>
+                <option value="html">HTML</option>
+                <option value="advance-java">Advance Java</option>
+                <option value="advance-python">Advance Python</option>
+                <option value="sql">SQL</option>
+                <option value="mongodb">MongoDB</option>
+                <option value="algorithms">Algorithms</option>
+                <option value="data-structures">Data Structures</option>
+                <option value="mern-full-stack">MERN Full Stack</option>
+                <option value="java-full-stack">Java Full Stack</option>
+                <option value="python-full-stack">Python Full Stack</option>
               </select>
             </div>
 
