@@ -154,16 +154,128 @@ export default function CourseLearnPage() {
   const completedLessons = Object.values(progress).filter(Boolean).length;
   const progressPercentage =
     totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+  const renderContent = (content) => {
+    if (!content || !Array.isArray(content)) return null;
 
-  const renderContent = (content) =>
-    content.map((block, idx) => {
+    const result = [];
+
+    for (let i = 0; i < content.length; i++) {
+      const block = content[i];
+
+      // If we encounter a code block
+      if (block.type === "code") {
+        // Start collecting all sequential code blocks
+        const codeBlocks = [];
+
+        while (i < content.length && content[i].type === "code") {
+          codeBlocks.push(content[i]);
+          i++;
+        }
+
+        // We found sequential code blocks - merge them
+        if (codeBlocks.length > 0) {
+          // Extract text from all code blocks
+          const allCodeTexts = codeBlocks
+            .map((codeBlock) => {
+              // Try multiple ways to extract text
+              if (codeBlock.text) {
+                return codeBlock.text;
+              } else if (
+                codeBlock.children &&
+                Array.isArray(codeBlock.children)
+              ) {
+                return codeBlock.children
+                  .map((child) => child.text || "")
+                  .join("");
+              } else if (codeBlock.plainText) {
+                return codeBlock.plainText;
+              }
+              return "";
+            })
+            .filter((text) => text && text.trim() !== "");
+
+          // Join with line breaks
+          const mergedCodeText = allCodeTexts.join("\n");
+
+          // Only render if we have content
+          if (mergedCodeText.trim()) {
+            result.push(
+              <div
+                key={`code-${i}`}
+                className="mb-6 rounded-lg overflow-hidden border border-gray-300 bg-white shadow-sm"
+              >
+                <div className="flex items-center justify-between bg-gray-50 px-4 py-2.5 border-b border-gray-300">
+                  <span className="text-sm font-medium text-gray-700">
+                    Code Example
+                  </span>
+                  <button
+                    onClick={(e) => {
+                      navigator.clipboard.writeText(mergedCodeText);
+
+                      // Visual feedback
+                      const btn = e.currentTarget;
+                      const originalText = btn.textContent;
+                      btn.textContent = "Copied!";
+                      btn.classList.remove(
+                        "bg-white",
+                        "hover:bg-gray-50",
+                        "text-gray-700",
+                        "hover:text-gray-900"
+                      );
+                      btn.classList.add(
+                        "bg-green-100",
+                        "text-green-700",
+                        "border-green-300"
+                      );
+
+                      // Reset button after 2 seconds
+                      setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.classList.remove(
+                          "bg-green-100",
+                          "text-green-700",
+                          "border-green-300"
+                        );
+                        btn.classList.add(
+                          "bg-white",
+                          "hover:bg-gray-50",
+                          "text-gray-700",
+                          "hover:text-gray-900"
+                        );
+                      }, 2000);
+                    }}
+                    className="text-xs bg-white hover:bg-gray-50 px-3 py-1.5 rounded border border-gray-300 transition-colors duration-200 text-gray-700 hover:text-gray-900"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <pre className="p-4 overflow-x-auto m-0">
+                  <code className="text-gray-900 text-sm font-mono leading-relaxed whitespace-pre">
+                    {mergedCodeText}
+                  </code>
+                </pre>
+              </div>
+            );
+          }
+
+          i--; // Move back one step
+          continue;
+        }
+      }
+
+      // Handle all other block types
       switch (block.type) {
         case "paragraph":
-          return (
-            <p key={idx} className="mb-4 text-gray-700 text-sm leading-relaxed">
-              {block.children.map((c) => c.text).join("")}
+          result.push(
+            <p
+              key={`p-${i}`}
+              className="mb-4 text-gray-700 text-sm leading-relaxed"
+            >
+              {block.children?.map((c) => c.text).join("") || ""}
             </p>
           );
+          break;
+
         case "heading":
           const level = block.level || 2;
           const headingClass =
@@ -172,45 +284,36 @@ export default function CourseLearnPage() {
               2: "text-xl font-semibold mb-3 text-gray-800 mt-6",
               3: "text-lg font-medium mb-2 text-gray-800 mt-4",
             }[level] || "text-base font-medium mb-2";
-          return (
-            <h3 key={idx} className={headingClass}>
-              {block.children.map((c) => c.text).join("")}
+          result.push(
+            <h3 key={`h-${i}`} className={headingClass}>
+              {block.children?.map((c) => c.text).join("") || ""}
             </h3>
           );
+          break;
+
         case "list":
-          return (
+          result.push(
             <ul
-              key={idx}
+              key={`list-${i}`}
               className="list-disc ml-5 mb-4 space-y-1 text-gray-700 text-sm"
             >
-              {block.children.map((li, i) => (
-                <li key={i}>{li.children.map((c) => c.text).join("")}</li>
-              ))}
+              {block.children?.map((li, liIdx) => (
+                <li key={liIdx}>
+                  {li.children?.map((c) => c.text).join("") || ""}
+                </li>
+              )) || []}
             </ul>
           );
-        case "code":
-          return (
-            <div
-              key={idx}
-              className="mb-4 rounded-lg overflow-hidden border border-gray-200 bg-white"
-            >
-              <div className="flex items-center justify-between bg-gray-50 px-3 py-2 border-b border-gray-200">
-                <span className="text-sm font-medium text-gray-700">
-                  Code Example
-                </span>
-                <button className="text-xs bg-white hover:bg-gray-100 px-2 py-1 rounded border border-gray-300 transition-colors text-gray-600">
-                  Copy
-                </button>
-              </div>
-              <pre className="p-3 overflow-x-auto text-sm font-mono leading-relaxed text-gray-800">
-                {block.children.map((c) => c.text).join("")}
-              </pre>
-            </div>
-          );
+          break;
+
         default:
-          return null;
+          // Skip unknown types
+          break;
       }
-    });
+    }
+
+    return result;
+  };
 
   // Scroll to TOP on next/prev lesson
   useEffect(() => {
