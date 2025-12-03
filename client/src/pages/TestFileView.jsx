@@ -109,6 +109,7 @@ export default function TestFileView() {
           lastAttempted: getRandomDate(),
           codeSnippet: generateCodeSnippet(row.Programs || row.program),
         }));
+        // console.log(formattedData);
 
         setQuestions(formattedData);
 
