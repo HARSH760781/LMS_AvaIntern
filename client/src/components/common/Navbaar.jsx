@@ -81,7 +81,7 @@ const Navbar = () => {
 
         {/* DESKTOP MENU */}
         <div className="hidden md:flex items-center space-x-6">
-          {/* DESKTOP ONLY — Switch to LMS */}
+          {/* DESKTOP ONLY Switch to LMS */}
           {!isMobile && (
             <button
               onClick={handleSwitchToLMS}
@@ -133,18 +133,6 @@ const Navbar = () => {
                     <span>My Profile</span>
                   </div>
 
-                  {/* MOBILE ONLY — Switch to LMS inside dropdown */}
-                  {isMobile && (
-                    <div
-                      onClick={handleSwitchToLMS}
-                      className="flex items-center space-x-2 px-4 py-2 hover:bg-blue-50 cursor-pointer text-gray-700"
-                    >
-                      <Zap className="w-4 h-4 text-blue-600" />
-                      <span>Switch to LMS</span>
-                      <ExternalLink className="w-3 h-3 ml-auto text-gray-400" />
-                    </div>
-                  )}
-
                   <div className="border-t">
                     <button
                       onClick={handleLogout}
@@ -187,17 +175,19 @@ const Navbar = () => {
           className="md:hidden bg-white border-t border-gray-200"
         >
           <div className="flex flex-col space-y-3 p-4">
-            {/* MOBILE: Switch to LMS */}
-            <button
-              onClick={handleSwitchToLMS}
-              className="flex items-center justify-between px-4 py-3 text-gray-700 rounded-md border hover:bg-blue-50"
-            >
-              <div className="flex items-center">
-                <Zap className="w-5 h-5 mr-3 text-blue-600" />
-                <span>Switch to LMS</span>
-              </div>
-              <ExternalLink className="w-4 h-4 text-gray-400" />
-            </button>
+            {/* MOBILE ONLY Switch to LMS */}
+            {isMobile && (
+              <button
+                onClick={handleSwitchToLMS}
+                className="flex items-center justify-between px-4 py-3 text-gray-700 rounded-md border hover:bg-blue-50"
+              >
+                <div className="flex items-center">
+                  <Zap className="w-5 h-5 mr-3 text-blue-600" />
+                  <span>Switch to LMS</span>
+                </div>
+                <ExternalLink className="w-4 h-4 text-gray-400" />
+              </button>
+            )}
 
             {/* Admin Button */}
             {isLoggedIn && role === "admin" && (
