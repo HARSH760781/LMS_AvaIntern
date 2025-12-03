@@ -33,19 +33,13 @@ const Navbar = () => {
     setIsLoggedIn(!!token);
   }, [token]);
 
-  // Check for mobile screen size
+  // Detect Mobile
   useEffect(() => {
     const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768); // md breakpoint in Tailwind
+      setIsMobile(window.innerWidth < 768);
     };
-
-    // Initial check
     checkScreenSize();
-
-    // Add event listener
     window.addEventListener("resize", checkScreenSize);
-
-    // Cleanup
     return () => window.removeEventListener("resize", checkScreenSize);
   }, []);
 
@@ -67,7 +61,7 @@ const Navbar = () => {
   };
 
   const handleSwitchToLMS = () => {
-    window.open("https://avainternlms.in", "_blank");
+    window.open("https://app.avainternlms.in/", "_blank");
   };
 
   return (
@@ -85,20 +79,20 @@ const Navbar = () => {
           />
         </div>
 
-        {/* Desktop Menu - Right side buttons */}
+        {/* DESKTOP MENU */}
         <div className="hidden md:flex items-center space-x-6">
-          {/* Switch to LMS Button - Only visible on desktop */}
+          {/* DESKTOP ONLY — Switch to LMS */}
           {!isMobile && (
             <button
               onClick={handleSwitchToLMS}
-              className="flex items-center px-4 py-2 text-gray-700 hover:text-blue-700 rounded-lg transition-colors hover:bg-blue-50  hover:border-blue-300"
+              className="flex items-center px-4 py-2 text-gray-700 hover:text-blue-700 rounded-lg transition-colors hover:bg-blue-50"
             >
               <Zap className="w-4 h-4 mr-2 text-blue-600" />
               <span className="text-sm font-medium">Switch to LMS</span>
             </button>
           )}
 
-          {/* Admin - Only for logged-in admins */}
+          {/* Admin Button */}
           {isLoggedIn && role === "admin" && (
             <button
               onClick={() => navigate("/admin")}
@@ -109,14 +103,14 @@ const Navbar = () => {
             </button>
           )}
 
-          {/* Profile (logged in) OR Login (not logged in) */}
+          {/* PROFILE / LOGIN */}
           {isLoggedIn ? (
             <motion.div
               className="relative"
               onMouseEnter={() => setShowProfileDropdown(true)}
               onMouseLeave={() => setShowProfileDropdown(false)}
             >
-              <button className="flex items-center space-x-2 px-4 py-2 hover:bg-blue-50 rounded-lg  hover:border-blue-300 transition-colors">
+              <button className="flex items-center space-x-2 px-4 py-2 hover:bg-blue-50 rounded-lg transition-colors">
                 <img
                   src={`${serverURL}/uploads/${profileImage}`}
                   className="w-8 h-8 rounded-full object-fill"
@@ -126,28 +120,30 @@ const Navbar = () => {
               </button>
 
               {showProfileDropdown && (
-                <motion.div className="absolute right-0 mt-2 w-56 bg-white  rounded-lg shadow-xl z-50">
+                <motion.div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl z-50">
                   <div className="px-4 py-2 border-b">
                     <p className="text-md font-medium">{fullName}</p>
                   </div>
 
                   <div
                     onClick={() => navigate("/profile")}
-                    className="flex items-center space-x-2 px-4 py-2 hover:bg-blue-50 cursor-pointer text-gray-700 hover:text-blue-600 transition-colors duration-200"
+                    className="flex items-center space-x-2 px-4 py-2 hover:bg-blue-50 cursor-pointer"
                   >
                     <User className="w-4 h-4" />
                     <span>My Profile</span>
                   </div>
 
-                  {/* Switch to LMS in dropdown - Always available in dropdown */}
-                  <div
-                    onClick={handleSwitchToLMS}
-                    className="flex items-center space-x-2 px-4 py-2 hover:bg-blue-50 cursor-pointer text-gray-700 hover:text-blue-600 transition-colors duration-200"
-                  >
-                    <Zap className="w-4 h-4 text-blue-600" />
-                    <span>Switch to LMS</span>
-                    <ExternalLink className="w-3 h-3 ml-auto text-gray-400" />
-                  </div>
+                  {/* MOBILE ONLY — Switch to LMS inside dropdown */}
+                  {isMobile && (
+                    <div
+                      onClick={handleSwitchToLMS}
+                      className="flex items-center space-x-2 px-4 py-2 hover:bg-blue-50 cursor-pointer text-gray-700"
+                    >
+                      <Zap className="w-4 h-4 text-blue-600" />
+                      <span>Switch to LMS</span>
+                      <ExternalLink className="w-3 h-3 ml-auto text-gray-400" />
+                    </div>
+                  )}
 
                   <div className="border-t">
                     <button
@@ -162,30 +158,16 @@ const Navbar = () => {
               )}
             </motion.div>
           ) : (
-            // Login button when not logged in
-            <div className="flex items-center space-x-6">
-              {/* Switch to LMS Button for non-logged in desktop users */}
-              {!isMobile && (
-                <button
-                  onClick={handleSwitchToLMS}
-                  className="flex items-center px-4 py-2 text-gray-700 hover:text-blue-700 rounded-lg transition-colors hover:bg-blue-50 border border-gray-200 hover:border-blue-300"
-                >
-                  <Zap className="w-4 h-4 mr-2 text-blue-600" />
-                  <span className="text-sm font-medium">Switch to LMS</span>
-                </button>
-              )}
-
-              <motion.button
-                onClick={() => navigate("/login")}
-                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg flex items-center hover:bg-blue-700 transition-colors shadow-sm"
-              >
-                <LogIn className="w-4 h-4 inline mr-2" /> Login
-              </motion.button>
-            </div>
+            <motion.button
+              onClick={() => navigate("/login")}
+              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg flex items-center hover:bg-blue-700 transition-colors shadow-sm"
+            >
+              <LogIn className="w-4 h-4 inline mr-2" /> Login
+            </motion.button>
           )}
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* MOBILE MENU BUTTON */}
         <div className="md:hidden flex items-center">
           <button
             className="p-2 rounded-md border hover:bg-gray-100"
@@ -196,7 +178,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* MOBILE MENU CONTENT */}
       {mobileMenuOpen && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
@@ -205,26 +187,26 @@ const Navbar = () => {
           className="md:hidden bg-white border-t border-gray-200"
         >
           <div className="flex flex-col space-y-3 p-4">
-            {/* Switch to LMS - Always in mobile menu */}
+            {/* MOBILE: Switch to LMS */}
             <button
               onClick={handleSwitchToLMS}
-              className="flex items-center justify-between px-4 py-3 text-gray-700 hover:text-blue-600 rounded-md border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors"
+              className="flex items-center justify-between px-4 py-3 text-gray-700 rounded-md border hover:bg-blue-50"
             >
               <div className="flex items-center">
                 <Zap className="w-5 h-5 mr-3 text-blue-600" />
-                <span className="text-sm font-medium">Switch to LMS</span>
+                <span>Switch to LMS</span>
               </div>
               <ExternalLink className="w-4 h-4 text-gray-400" />
             </button>
 
-            {/* Admin - Mobile */}
+            {/* Admin Button */}
             {isLoggedIn && role === "admin" && (
               <button
                 onClick={() => navigate("/admin")}
-                className="flex items-center px-4 py-3 text-gray-700 hover:text-blue-600 rounded-md border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                className="flex items-center px-4 py-3 text-gray-700 border rounded-md hover:bg-blue-50"
               >
                 <Shield className="w-5 h-5 mr-3" />
-                <span className="text-sm font-medium">Admin Dashboard</span>
+                <span>Admin Dashboard</span>
               </button>
             )}
 
@@ -232,25 +214,24 @@ const Navbar = () => {
               <div className="flex flex-col space-y-2">
                 <button
                   onClick={() => navigate("/profile")}
-                  className="flex items-center px-4 py-3 text-gray-700 hover:text-blue-600 rounded-md border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                  className="flex items-center px-4 py-3 text-gray-700 border rounded-md hover:bg-blue-50"
                 >
                   <User className="w-5 h-5 mr-3" />
-                  <span className="text-sm font-medium">My Profile</span>
+                  <span>My Profile</span>
                 </button>
 
                 <button
                   onClick={handleLogout}
-                  className="flex items-center px-4 py-3 text-red-600 hover:bg-red-50 rounded-md border border-red-200 hover:border-red-300 transition-colors"
+                  className="flex items-center px-4 py-3 text-red-600 border border-red-300 rounded-md hover:bg-red-50"
                 >
                   <LogOut className="w-5 h-5 mr-3" />
-                  <span className="text-sm font-medium">Logout</span>
+                  <span>Logout</span>
                 </button>
               </div>
             ) : (
-              // Login button when not logged in - Mobile
               <button
                 onClick={() => navigate("/login")}
-                className="px-4 py-3 bg-blue-600 text-white rounded-lg flex items-center justify-center hover:bg-blue-700 transition-colors"
+                className="px-4 py-3 bg-blue-600 text-white rounded-lg flex items-center justify-center hover:bg-blue-700"
               >
                 <LogIn className="w-5 h-5 inline mr-2" /> Login
               </button>
