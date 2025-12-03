@@ -395,9 +395,9 @@ export default function CourseLearnPage() {
               <BookOpen className="w-4 h-4 text-white" />
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="font-medium text-gray-800 text-sm truncate">
+              <h4 className="font-medium text-gray-800 text-sm truncate">
                 {prettyTitle(courseTitle)}
-              </h1>
+              </h4>
               <p className="text-gray-500 text-xs mt-0.5">
                 {topics.length} modules • {totalLessons} lessons
               </p>
@@ -525,9 +525,9 @@ export default function CourseLearnPage() {
                     {selectedTopic.subTopics?.length}
                   </span>
                 </div>
-                <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 truncate">
+                <h3 className="text-lg sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3 truncate">
                   {selectedSubTopic?.subTopicTitle || selectedTopic?.topicTitle}
-                </h1>
+                </h3>
               </div>
 
               <div className="flex gap-2 flex-wrap">
