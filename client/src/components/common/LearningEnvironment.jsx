@@ -102,15 +102,52 @@ export default function LearningEnvironment() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="relative">
-            <div className="w-16 h-16 border-4 border-blue-100 rounded-full animate-spin border-t-blue-500"></div>
-            <Sparkles className="w-6 h-6 text-blue-500 absolute -top-1 -right-1 animate-pulse" />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-6">
+        <div className="text-center max-w-sm mx-auto">
+          {/* Animated Container */}
+          <div className="relative mx-auto w-24 h-24 mb-6">
+            {/* Outer Ring with Gradient */}
+            <div className="absolute inset-0 rounded-full border-4 border-blue-200"></div>
+
+            {/* Spinning Ring */}
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-500 animate-spin"></div>
+
+            {/* Pulsing Center Circle */}
+            <div className="absolute inset-6 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 animate-pulse"></div>
+
+            {/* Sparkle Icon - Better positioned */}
+            <div className="absolute -top-1 -right-1 bg-white rounded-full p-1 shadow-lg">
+              <Sparkles className="w-5 h-5 text-blue-500 animate-pulse" />
+            </div>
           </div>
-          <p className="text-gray-600 mt-4 font-medium">
-            Loading Course Content
-          </p>
+
+          {/* Loading Text with Typing Animation */}
+          <div className="space-y-3">
+            <h3 className="text-xl font-semibold text-gray-800">
+              Loading Course Content
+            </h3>
+
+            <p className="text-gray-600 text-sm">
+              Preparing your learning materials...
+            </p>
+
+            {/* Animated Dots */}
+            <div className="flex justify-center items-center space-x-1">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+            </div>
+          </div>
+
+          {/* Optional Progress Bar */}
+          <div className="mt-6">
+            <div className="h-1.5 w-full bg-blue-100 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full animate-progress"></div>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Please wait while we set up your course...
+            </p>
+          </div>
         </div>
       </div>
     );
