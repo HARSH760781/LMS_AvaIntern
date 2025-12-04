@@ -69,6 +69,12 @@ export default function TestFileView() {
     }
   };
 
+  const prettyTitle = (str) =>
+    str
+      .replace(/-/g, " ")
+      .toLowerCase()
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+
   // Handle responsive stats
   useEffect(() => {
     const handleResize = () => {
@@ -110,11 +116,11 @@ export default function TestFileView() {
 
   const getTimeEstimate = (difficulty) => {
     const times = {
-      Easy: "5-7 minutes",
-      Medium: "10-15 minutes",
-      Hard: "15-30 minutes",
+      Easy: "5-7 min",
+      Medium: "10-15 min",
+      Hard: "15-30 min",
     };
-    return times[difficulty] || "10 minutes";
+    return times[difficulty] || "10 min";
   };
 
   const getRandomDate = () => {
@@ -165,12 +171,11 @@ function solution(input) {
   // Format Excel data into questions
   const formatExcelData = (rawData) => {
     if (!rawData || rawData.length === 0) {
-      // console.log("No data in Excel file");
       return [];
     }
 
     return rawData.map((row, index) => {
-      // Try to detect column names - common variations
+      // Try to detect column names
       const columnNames = Object.keys(row);
 
       // Find program/title column
@@ -215,7 +220,6 @@ function solution(input) {
         attempts: Math.floor(Math.random() * 500) + 100,
         lastAttempted: getRandomDate(),
         codeSnippet: generateCodeSnippet(program),
-        // Keep all original data
         rawData: row,
       };
     });
@@ -244,10 +248,8 @@ function solution(input) {
         const url = `${serverURL}/api/programs/file/${fileId}?courseTitle=${encodeURIComponent(
           courseTitle
         )}`;
-        // console.log("Request URL:", url);
 
         const res = await fetch(url);
-        // console.log("Response status:", res.status);
 
         if (!res.ok) {
           const contentType = res.headers.get("content-type");
@@ -257,7 +259,6 @@ function solution(input) {
             throw new Error(errorData.message || `Server error: ${res.status}`);
           } else {
             const errorText = await res.text();
-            // console.error("Error text response:", errorText);
             throw new Error(
               `Failed to fetch file: ${res.status} ${res.statusText}`
             );
@@ -265,40 +266,22 @@ function solution(input) {
         }
 
         const fileData = await res.blob();
-        // console.log(
-        //   "✅ Blob received - Size:",
-        //   fileData.size,
-        //   "Type:",
-        //   fileData.type
-        // );
 
         if (fileData.size === 0) {
           throw new Error("Received empty file from server");
         }
 
         const buffer = await fileData.arrayBuffer();
-        // console.log("Buffer size:", buffer.byteLength);
-
         const workbook = XLSX.read(buffer, { type: "array" });
-        // console.log("Excel parsed successfully. Sheets:", workbook.SheetNames);
-
         const sheetName = workbook.SheetNames[0];
         const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-        // console.log("Parsed data rows:", rawData.length);
-        // console.log("First few rows:", rawData.slice(0, 3));
 
-        // Format the Excel data into questions
         const formattedQuestions = formatExcelData(rawData);
-        // console.log("Formatted questions count:", formattedQuestions.length);
-
         setQuestions(formattedQuestions);
 
-        // Group questions by topic
         const grouped = groupQuestionsByTopic(formattedQuestions);
-        // console.log("Grouped questions topics:", Object.keys(grouped));
         setGroupedQuestions(grouped);
 
-        // Initialize some questions as completed for demo
         const initialCompleted = {};
         formattedQuestions.slice(0, 3).forEach((q, idx) => {
           if (idx % 3 === 0) {
@@ -307,7 +290,6 @@ function solution(input) {
         });
         setCompletedQuestions(initialCompleted);
       } catch (err) {
-        // Show professional toast notification
         toast.error(`Failed to load file: ${err.message}`, {
           duration: 5000,
           position: "top-right",
@@ -319,12 +301,6 @@ function solution(input) {
             fontWeight: "500",
           },
           icon: "❌",
-        });
-
-        // Optionally set an error state for UI
-        setError({
-          message: err.message,
-          details: err.stack,
         });
       } finally {
         setLoading(false);
@@ -487,7 +463,6 @@ function solution(input) {
     );
   }
 
-  // Debug view if no questions loaded
   if (!loading && questions.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
@@ -512,63 +487,14 @@ function solution(input) {
               No Questions Loaded
             </h4>
             <p className="text-gray-600 mb-6">
-              The Excel file was loaded but no questions could be parsed. This
-              could be because:
+              The Excel file was loaded but no questions could be parsed.
             </p>
-            <div className="text-left bg-gray-50 rounded-lg p-4 mb-6">
-              <ul className="list-disc pl-5 space-y-2 text-gray-600">
-                <li>The Excel file is empty or has no data</li>
-                <li>The Excel format doesn't match expected columns</li>
-                <li>There was an error parsing the file structure</li>
-                <li>Check the browser console for detailed error messages</li>
-              </ul>
-            </div>
-
-            <div className="space-y-4">
-              <button
-                onClick={async () => {
-                  // Test the API endpoint directly
-                  const url = `${serverURL}/api/programs/file/${fileId}?courseTitle=${encodeURIComponent(
-                    courseTitle
-                  )}`;
-                  console.log("Testing URL:", url);
-
-                  try {
-                    const res = await fetch(url);
-                    console.log("Response status:", res.status);
-
-                    if (res.ok) {
-                      const blob = await res.blob();
-                      console.log("Blob size:", blob.size);
-                      console.log("Blob type:", blob.type);
-
-                      // Try to read as text
-                      const text = await blob.text();
-                      console.log("First 200 chars:", text.substring(0, 200));
-
-                      alert("Check browser console for debug info");
-                    } else {
-                      const errorText = await res.text();
-                      console.error("Error:", errorText);
-                      alert("Error fetching file");
-                    }
-                  } catch (err) {
-                    console.error("Debug error:", err);
-                    alert("Network error - check console");
-                  }
-                }}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-              >
-                Debug API Response
-              </button>
-
-              <button
-                onClick={() => navigate(-1)}
-                className="block w-full px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-              >
-                Go Back
-              </button>
-            </div>
+            <button
+              onClick={() => navigate(-1)}
+              className="block w-full px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+            >
+              Go Back
+            </button>
           </div>
         </div>
       </div>
@@ -582,61 +508,61 @@ function solution(input) {
     >
       {/* Sticky Header */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Mobile Top Bar - Improved for full text visibility */}
-          <div className="flex items-center justify-between py-3 sm:py-4 lg:hidden">
-            {/* Left: Back Button */}
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          {/* Mobile Top Bar */}
+          <div className="flex items-center justify-between py-3 lg:hidden">
+            {/* Back Button */}
             <button
               onClick={() => navigate(-1)}
               className="flex-shrink-0 p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors mr-2"
               aria-label="Go back"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
-            {/* Center: Title - Now shows full text */}
+            {/* Title */}
             <div className="flex-1 min-w-0 mx-2">
-              <div className="flex items-center justify-center gap-2 min-w-0">
+              <div className="flex items-center justify-center gap-1 sm:gap-2 min-w-0">
                 <div className="text-center min-w-0">
-                  <h4 className="text-base sm:text-lg font-bold text-gray-900 line-clamp-1 text-pretty">
-                    {courseTitle || "Programming Assessment"}
+                  <h4 className="text-sm sm:text-base font-bold text-gray-900 line-clamp-1 text-pretty">
+                    {prettyTitle(courseTitle) || "Assessment"}
                   </h4>
-                  <p className="text-xs text-gray-500 line-clamp-1 text-pretty mt-0.5">
+                  <p className="text-[10px] sm:text-xs text-gray-500 line-clamp-1 text-pretty mt-0.5">
                     Master programming skills
                   </p>
                 </div>
-                <Hash className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                <Hash className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500 flex-shrink-0" />
               </div>
             </div>
 
-            {/* Right: Action Buttons */}
-            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 ml-2">
+            {/* Action Buttons */}
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               <button
                 onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
-                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+                className="p-1.5 sm:p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
                 aria-label="Toggle filters"
               >
                 {mobileFiltersOpen ? (
-                  <X className="w-5 h-5" />
+                  <X className="w-4 h-4 sm:w-5 sm:h-5" />
                 ) : (
-                  <Filter className="w-5 h-5" />
+                  <Filter className="w-4 h-4 sm:w-5 sm:h-5" />
                 )}
               </button>
               <button
                 onClick={toggleFullscreen}
-                className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+                className="p-1.5 sm:p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors hidden sm:block"
                 aria-label="Toggle fullscreen"
               >
                 {isFullscreen ? (
-                  <Minimize2 className="w-5 h-5" />
+                  <Minimize2 className="w-4 h-4 sm:w-5 sm:h-5" />
                 ) : (
-                  <Maximize2 className="w-5 h-5" />
+                  <Maximize2 className="w-4 h-4 sm:w-5 sm:h-5" />
                 )}
               </button>
             </div>
           </div>
 
-          {/* Mobile Progress Bar - Moved below for better space */}
+          {/* Mobile Progress Bar */}
           <div className="lg:hidden mt-2 px-2">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs font-medium text-gray-700">
@@ -654,35 +580,35 @@ function solution(input) {
             </div>
           </div>
 
-          {/* Desktop Header - Enhanced for full text visibility */}
+          {/* Desktop Header */}
           <div className="hidden lg:block">
             <div className="py-4">
               <div className="flex items-center justify-between">
-                {/* Left Section: Back button and title */}
-                <div className="flex items-center space-x-6 flex-1 min-w-0">
+                {/* Left Section */}
+                <div className="flex items-center space-x-4 md:space-x-6 flex-1 min-w-0">
                   <button
                     onClick={() => navigate(-1)}
-                    className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 bg-gray-100 hover:bg-gray-200 px-4 py-2.5 rounded-xl font-medium group flex-shrink-0"
+                    className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 bg-gray-100 hover:bg-gray-200 px-3 py-2 md:px-4 md:py-2.5 rounded-xl font-medium group flex-shrink-0 text-sm md:text-base"
                   >
-                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                    <span>Back</span>
+                    <ArrowLeft className="w-4 h-4 md:w-5 md:h-5 group-hover:-translate-x-1 transition-transform" />
+                    <span className="hidden sm:inline">Back</span>
                   </button>
 
-                  <div className="w-px h-8 bg-gray-300 flex-shrink-0"></div>
+                  <div className="w-px h-6 md:h-8 bg-gray-300 flex-shrink-0"></div>
 
-                  {/* Title with full visibility */}
+                  {/* Title */}
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-3 mb-1">
-                      <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 text-pretty break-words min-w-0">
+                    <div className="flex items-center gap-2 md:gap-3 mb-1">
+                      <h1 className="text-lg md:text-xl lg:text-2xl font-bold text-gray-900 text-pretty break-words min-w-0">
                         {courseTitle
-                          ? `${courseTitle}`
+                          ? `${prettyTitle(courseTitle)}`
                           : "Programming Assessment"}
                       </h1>
-                      <span className="text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0">
+                      <span className="text-xs md:text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 md:px-3 md:py-1 rounded-full whitespace-nowrap flex-shrink-0">
                         Assessment
                       </span>
                     </div>
-                    <p className="text-gray-600 text-sm lg:text-base text-pretty break-words">
+                    <p className="text-gray-600 text-xs md:text-sm lg:text-base text-pretty break-words">
                       {courseTitle
                         ? "Master your skills with curated programming challenges"
                         : "Curated programming challenges to enhance your skills"}
@@ -691,52 +617,51 @@ function solution(input) {
                 </div>
 
                 {/* Right Section: Controls */}
-                <div className="flex items-center gap-4 flex-shrink-0 ml-6">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600 hidden xl:inline">
-                      View:
-                    </span>
+                <div className="flex items-center gap-2 md:gap-4 flex-shrink-0 ml-4">
+                  <div className="flex items-center gap-1 md:gap-2">
                     <button
                       onClick={() =>
                         setViewMode(viewMode === "grid" ? "list" : "grid")
                       }
-                      className="p-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex items-center gap-2"
+                      className="p-2 md:p-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex items-center gap-1 md:gap-2"
                       aria-label={`Switch to ${
                         viewMode === "grid" ? "list" : "grid"
                       } view`}
                     >
                       {viewMode === "grid" ? (
                         <>
-                          <List className="w-5 h-5" />
-                          <span className="text-sm hidden 2xl:inline">
+                          <List className="w-4 h-4 md:w-5 md:h-5" />
+                          <span className="text-xs md:text-sm hidden lg:inline">
                             List
                           </span>
                         </>
                       ) : (
                         <>
-                          <Grid className="w-5 h-5" />
-                          <span className="text-sm hidden 2xl:inline">
+                          <Grid className="w-4 h-4 md:w-5 md:h-5" />
+                          <span className="text-xs md:text-sm hidden lg:inline">
                             Grid
                           </span>
                         </>
                       )}
                     </button>
                   </div>
-                  <div className="w-px h-6 bg-gray-300"></div>
+                  <div className="w-px h-4 md:h-6 bg-gray-300"></div>
                   <button
                     onClick={toggleFullscreen}
-                    className="p-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex items-center gap-2"
+                    className="p-2 md:p-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex items-center gap-1 md:gap-2"
                     aria-label="Toggle fullscreen"
                   >
                     {isFullscreen ? (
                       <>
-                        <Minimize2 className="w-5 h-5" />
-                        <span className="text-sm hidden 2xl:inline">Exit</span>
+                        <Minimize2 className="w-4 h-4 md:w-5 md:h-5" />
+                        <span className="text-xs md:text-sm hidden xl:inline">
+                          Exit
+                        </span>
                       </>
                     ) : (
                       <>
-                        <Maximize2 className="w-5 h-5" />
-                        <span className="text-sm hidden 2xl:inline">
+                        <Maximize2 className="w-4 h-4 md:w-5 md:h-5" />
+                        <span className="text-xs md:text-sm hidden xl:inline">
                           Fullscreen
                         </span>
                       </>
@@ -748,10 +673,10 @@ function solution(input) {
               {/* Progress Bar - Desktop */}
               <div className="mt-4">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-xs md:text-sm font-medium text-gray-700">
                     {completedCount}/{totalQuestions} completed
                   </span>
-                  <span className="text-sm font-bold text-blue-600">
+                  <span className="text-xs md:text-sm font-bold text-blue-600">
                     {Math.round(totalProgress)}%
                   </span>
                 </div>
@@ -775,7 +700,9 @@ function solution(input) {
         >
           <div className="absolute right-0 top-0 h-full w-4/5 max-w-sm bg-white shadow-2xl transform transition-transform duration-300 ease-out p-6 overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-gray-900">Filters</h2>
+              <h2 className="text-lg md:text-xl font-bold text-gray-900">
+                Filters
+              </h2>
               <button
                 onClick={() => setMobileFiltersOpen(false)}
                 className="p-2 hover:bg-gray-100 rounded-lg"
@@ -807,7 +734,7 @@ function solution(input) {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Difficulty
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   {["all", "Easy", "Medium", "Hard"].map((level) => (
                     <button
                       key={level}
@@ -886,97 +813,109 @@ function solution(input) {
         </div>
       )}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         {/* Desktop Stats Cards */}
-        <div className="hidden lg:grid lg:grid-cols-4 gap-4 mb-8">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow duration-300">
+        <div className="hidden lg:grid lg:grid-cols-2 xl:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl md:rounded-2xl p-4 md:p-6 text-white shadow-lg hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-100 text-sm font-medium">
+                <p className="text-blue-100 text-xs md:text-sm font-medium">
                   Total Problems
                 </p>
-                <p className="text-3xl font-bold mt-2">{totalQuestions}</p>
+                <p className="text-xl md:text-2xl lg:text-3xl font-bold mt-1 md:mt-2">
+                  {totalQuestions}
+                </p>
                 <p className="text-blue-200 text-xs mt-1">Across all topics</p>
               </div>
-              <Target className="w-10 h-10 opacity-90" />
+              <Target className="w-8 h-8 md:w-10 md:h-10 opacity-90" />
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl md:rounded-2xl p-4 md:p-6 text-white shadow-lg hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-100 text-sm font-medium">Easy</p>
-                <p className="text-3xl font-bold mt-2">
+                <p className="text-green-100 text-xs md:text-sm font-medium">
+                  Easy
+                </p>
+                <p className="text-xl md:text-2xl lg:text-3xl font-bold mt-1 md:mt-2">
                   {difficultyStats.Easy}
                 </p>
                 <p className="text-green-200 text-xs mt-1">Beginner friendly</p>
               </div>
-              <Sparkles className="w-10 h-10 opacity-90" />
+              <Sparkles className="w-8 h-8 md:w-10 md:h-10 opacity-90" />
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl md:rounded-2xl p-4 md:p-6 text-white shadow-lg hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-yellow-100 text-sm font-medium">Medium</p>
-                <p className="text-3xl font-bold mt-2">
+                <p className="text-yellow-100 text-xs md:text-sm font-medium">
+                  Medium
+                </p>
+                <p className="text-xl md:text-2xl lg:text-3xl font-bold mt-1 md:mt-2">
                   {difficultyStats.Medium}
                 </p>
                 <p className="text-yellow-200 text-xs mt-1">
                   Intermediate level
                 </p>
               </div>
-              <BarChart3 className="w-10 h-10 opacity-90" />
+              <BarChart3 className="w-8 h-8 md:w-10 md:h-10 opacity-90" />
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow duration-300">
+          <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl md:rounded-2xl p-4 md:p-6 text-white shadow-lg hover:shadow-xl transition-shadow duration-300">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-red-100 text-sm font-medium">Hard</p>
-                <p className="text-3xl font-bold mt-2">
+                <p className="text-red-100 text-xs md:text-sm font-medium">
+                  Hard
+                </p>
+                <p className="text-xl md:text-2xl lg:text-3xl font-bold mt-1 md:mt-2">
                   {difficultyStats.Hard}
                 </p>
                 <p className="text-red-200 text-xs mt-1">Advanced challenges</p>
               </div>
-              <Shield className="w-10 h-10 opacity-90" />
+              <Shield className="w-8 h-8 md:w-10 md:h-10 opacity-90" />
             </div>
           </div>
         </div>
 
         {/* Mobile Stats Cards */}
-        <div className="lg:hidden grid grid-cols-2 gap-3 mb-6">
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-4 text-white">
+        <div className="lg:hidden grid grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-6">
+          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg sm:rounded-xl p-3 sm:p-4 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-blue-100">Total</p>
-                <p className="text-xl font-bold mt-1">{totalQuestions}</p>
+                <p className="text-lg sm:text-xl font-bold mt-1">
+                  {totalQuestions}
+                </p>
               </div>
-              <Target className="w-6 h-6 opacity-90" />
+              <Target className="w-5 h-5 sm:w-6 sm:h-6 opacity-90" />
             </div>
           </div>
 
-          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-4 text-white">
+          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg sm:rounded-xl p-3 sm:p-4 text-white">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-green-100">Completed</p>
-                <p className="text-xl font-bold mt-1">{completedCount}</p>
+                <p className="text-lg sm:text-xl font-bold mt-1">
+                  {completedCount}
+                </p>
               </div>
-              <CheckCircle className="w-6 h-6 opacity-90" />
+              <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 opacity-90" />
             </div>
           </div>
         </div>
 
         {/* Desktop Filters & Tabs */}
-        <div className="hidden lg:block bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
-          <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
+        <div className="hidden lg:block bg-white rounded-lg md:rounded-2xl shadow-sm border border-gray-200 p-4 md:p-6 mb-6 md:mb-8">
+          <div className="flex flex-col lg:flex-row gap-4 md:gap-6 items-center justify-between">
             {/* Status Tabs */}
             <div className="flex items-center gap-2">
               {["all", "completed", "pending"].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-medium transition-all duration-200 text-sm md:text-base ${
                     activeTab === tab
                       ? tab === "completed"
                         ? "bg-green-100 text-green-700 border border-green-200"
@@ -995,16 +934,16 @@ function solution(input) {
               ))}
             </div>
 
-            <div className="flex items-center gap-4 flex-1 max-w-2xl">
+            <div className="flex items-center gap-2 md:gap-4 flex-1 max-w-2xl">
               {/* Search */}
               <div className="relative flex-1">
-                <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                <Search className="w-4 h-4 md:w-5 md:h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                 <input
                   type="text"
-                  placeholder="Search problems, topics, or keywords..."
+                  placeholder="Search problems..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-9 pr-4 py-2.5 md:pl-10 md:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
                 />
               </div>
 
@@ -1012,7 +951,7 @@ function solution(input) {
               <select
                 value={difficultyFilter}
                 onChange={(e) => setDifficultyFilter(e.target.value)}
-                className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="px-3 py-2.5 md:px-4 md:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
               >
                 <option value="all">All Difficulty</option>
                 <option value="Easy">Easy</option>
@@ -1024,7 +963,7 @@ function solution(input) {
               <select
                 value={topicFilter}
                 onChange={(e) => setTopicFilter(e.target.value)}
-                className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="px-3 py-2.5 md:px-4 md:py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm md:text-base"
               >
                 <option value="all">All Topics</option>
                 {uniqueTopics.map((topic) => (
@@ -1038,11 +977,11 @@ function solution(input) {
         </div>
 
         {/* Mobile Filter Buttons */}
-        <div className="lg:hidden flex items-center justify-between mb-6">
-          <div className="flex items-center gap-2 overflow-x-auto pb-2">
+        <div className="lg:hidden flex items-center justify-between mb-4 sm:mb-6">
+          <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto pb-2">
             <button
               onClick={() => setActiveTab("all")}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap ${
+              className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap ${
                 activeTab === "all"
                   ? "bg-blue-600 text-white"
                   : "bg-gray-100 text-gray-700"
@@ -1052,7 +991,7 @@ function solution(input) {
             </button>
             <button
               onClick={() => setActiveTab("completed")}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap ${
+              className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap ${
                 activeTab === "completed"
                   ? "bg-green-600 text-white"
                   : "bg-gray-100 text-gray-700"
@@ -1062,7 +1001,7 @@ function solution(input) {
             </button>
             <button
               onClick={() => setActiveTab("pending")}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap ${
+              className={`px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap ${
                 activeTab === "pending"
                   ? "bg-yellow-600 text-white"
                   : "bg-gray-100 text-gray-700"
@@ -1074,17 +1013,17 @@ function solution(input) {
 
           <button
             onClick={() => setMobileFiltersOpen(true)}
-            className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+            className="p-1.5 sm:p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
             aria-label="Open filters"
           >
-            <Filter className="w-5 h-5" />
+            <Filter className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
 
         {/* Results Count */}
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
               {Object.values(filteredGroupedQuestions).flat().length} Problems
               Found
             </h2>
@@ -1095,9 +1034,9 @@ function solution(input) {
                 setTopicFilter("all");
                 setActiveTab("all");
               }}
-              className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+              className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4" />
               Clear Filters
             </button>
           </div>
@@ -1105,12 +1044,12 @@ function solution(input) {
 
         {/* Questions Display - Grid/List View */}
         {Object.keys(filteredGroupedQuestions).length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-200">
-            <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          <div className="text-center py-8 sm:py-12 bg-white rounded-lg sm:rounded-2xl shadow-sm border border-gray-200">
+            <FileText className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-base sm:text-lg md:text-xl font-semibold text-gray-900 mb-2">
               No problems found
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-600 text-sm sm:text-base mb-6">
               Try adjusting your filters or search terms
             </p>
             <button
@@ -1119,43 +1058,43 @@ function solution(input) {
                 setDifficultyFilter("all");
                 setTopicFilter("all");
               }}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 sm:px-6 sm:py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm sm:text-base"
             >
               Reset Filters
             </button>
           </div>
         ) : viewMode === "grid" ? (
-          // Grid View
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          // Grid View - Responsive
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {Object.values(filteredGroupedQuestions)
               .flat()
               .map((question) => (
                 <div
                   key={question.id}
-                  className="bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 overflow-hidden group"
+                  className="bg-white rounded-lg sm:rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-300 overflow-hidden group"
                 >
-                  <div className="p-5">
+                  <div className="p-3 sm:p-4 md:p-5">
                     {/* Question Header */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
+                    <div className="flex items-start justify-between mb-3 sm:mb-4">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-2">
-                          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                          <div className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xs sm:text-sm">
                             {question.id}
                           </div>
                           <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(
+                            className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-medium ${getDifficultyColor(
                               question.difficulty
                             )}`}
                           >
                             {question.difficulty}
                           </span>
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
+                        <h5 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-2 line-clamp-2 leading-tight">
                           {question.program}
-                        </h3>
-                        <div className="flex items-center gap-2 mb-3">
+                        </h5>
+                        <div className="flex items-center gap-1 sm:gap-2 mb-2">
                           <span
-                            className={`px-2 py-1 rounded text-xs ${getTopicColor(
+                            className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded text-xs ${getTopicColor(
                               question.topic
                             )}`}
                           >
@@ -1165,7 +1104,7 @@ function solution(input) {
                       </div>
                       <button
                         onClick={() => toggleCompletion(question.id)}
-                        className="flex-shrink-0"
+                        className="flex-shrink-0 ml-1 sm:ml-2"
                         aria-label={
                           completedQuestions[question.id]
                             ? "Mark as incomplete"
@@ -1173,24 +1112,29 @@ function solution(input) {
                         }
                       >
                         {completedQuestions[question.id] ? (
-                          <CheckCircle className="w-6 h-6 text-green-500" />
+                          <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
                         ) : (
-                          <Circle className="w-6 h-6 text-gray-300 hover:text-gray-400" />
+                          <Circle className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 hover:text-gray-400 transition-colors" />
                         )}
                       </button>
                     </div>
 
                     {/* Description */}
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                    <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4 line-clamp-3 leading-relaxed">
                       {question.description}
                     </p>
 
                     {/* Stats */}
                     <div className="flex items-center justify-between text-xs text-gray-500">
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2 sm:gap-3">
                         <div className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
-                          <span>{question.timeEstimate}</span>
+                          <span className="hidden sm:inline">
+                            {question.timeEstimate}
+                          </span>
+                          <span className="sm:hidden text-xs">
+                            {question.timeEstimate.split(" ")[0]}
+                          </span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Users className="w-3 h-3" />
@@ -1199,23 +1143,28 @@ function solution(input) {
                       </div>
                       <div className="flex items-center gap-1">
                         <TrendingUp className="w-3 h-3" />
-                        <span>{question.attempts} attempts</span>
+                        <span className="hidden sm:inline">
+                          {question.attempts} attempts
+                        </span>
+                        <span className="sm:hidden text-xs">
+                          {question.attempts}
+                        </span>
                       </div>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                    <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
                       <button
                         onClick={() => toggleQuestion(question.id)}
-                        className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
+                        className="text-xs sm:text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
                       >
                         {expandedQuestions[question.id]
                           ? "Show Less"
                           : "View Details"}
                         {expandedQuestions[question.id] ? (
-                          <ChevronUp className="w-4 h-4" />
+                          <ChevronUp className="w-3 h-3 sm:w-4 sm:h-4" />
                         ) : (
-                          <ChevronDown className="w-4 h-4" />
+                          <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4" />
                         )}
                       </button>
                     </div>
@@ -1223,34 +1172,25 @@ function solution(input) {
 
                   {/* Expanded Content */}
                   {expandedQuestions[question.id] && (
-                    <div className="border-t border-gray-100 bg-gray-50 p-5">
-                      <div className="space-y-4">
+                    <div className="border-t border-gray-100 bg-gray-50 p-3 sm:p-4 md:p-5">
+                      <div className="space-y-3 sm:space-y-4">
                         <div>
-                          <h4 className="font-semibold text-gray-900 mb-2 text-sm">
+                          <h4 className="font-semibold text-gray-900 mb-2 text-xs sm:text-sm">
                             Problem Statement
                           </h4>
-                          <div className="bg-white rounded-lg p-3 border border-gray-200">
-                            <p className="text-gray-700 text-sm leading-relaxed">
+                          <div className="bg-white rounded-lg p-2 sm:p-3 border border-gray-200">
+                            <p className="text-gray-700 text-xs sm:text-sm leading-relaxed">
                               {question.description}
                             </p>
                           </div>
                         </div>
 
-                        {/* <div>
-                          <h4 className="font-semibold text-gray-900 mb-2 text-sm">
-                            Sample Code
-                          </h4>
-                          <pre className="bg-gray-900 text-gray-100 rounded-lg p-3 text-sm overflow-x-auto">
-                            <code>{question.codeSnippet}</code>
-                          </pre>
-                        </div> */}
-
                         <div className="pt-2">
-                          <h4 className="font-semibold text-gray-900 mb-2 text-sm">
+                          <h4 className="font-semibold text-gray-900 mb-2 text-xs sm:text-sm">
                             Raw Excel Data (Debug)
                           </h4>
-                          <div className="bg-gray-800 text-gray-300 rounded-lg p-3 text-xs overflow-x-auto">
-                            <pre>
+                          <div className="bg-gray-800 text-gray-300 rounded-lg p-2 sm:p-3 text-xs overflow-x-auto">
+                            <pre className="text-[10px] sm:text-xs">
                               {JSON.stringify(question.rawData, null, 2)}
                             </pre>
                           </div>
@@ -1262,19 +1202,19 @@ function solution(input) {
               ))}
           </div>
         ) : (
-          // List View (Accordion)
-          <div className="space-y-4">
+          // List View (Accordion) - Responsive
+          <div className="space-y-3 sm:space-y-4">
             {Object.keys(filteredGroupedQuestions).map((topic, idx) => (
               <div
                 key={idx}
-                className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 overflow-hidden"
+                className="bg-white rounded-lg sm:rounded-xl border border-gray-200 hover:shadow-sm transition-all duration-300 overflow-hidden"
               >
-                {/* Topic Header - Changed from button to div with onClick */}
+                {/* Topic Header */}
                 <div
                   onClick={() =>
                     setOpenAccordion(openAccordion === idx ? null : idx)
                   }
-                  className="w-full flex justify-between items-center p-4 sm:p-6 hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+                  className="w-full flex justify-between items-center p-3 sm:p-4 md:p-6 hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
@@ -1284,27 +1224,27 @@ function solution(input) {
                     }
                   }}
                 >
-                  <div className="flex items-center space-x-3 sm:space-x-4">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                      <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg flex-shrink-0">
+                      <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </div>
                     <div className="text-left">
-                      <h2 className="text-base sm:text-lg font-semibold text-gray-900">
+                      <h2 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
                         {topic}
                       </h2>
-                      <p className="text-gray-600 text-sm mt-1">
+                      <p className="text-gray-600 text-xs sm:text-sm mt-0.5">
                         {filteredGroupedQuestions[topic].length} problems
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2 sm:space-x-4">
-                    <span className="text-sm text-gray-500 hidden sm:inline">
+                  <div className="flex items-center space-x-1 sm:space-x-2 md:space-x-4">
+                    <span className="text-xs text-gray-500 hidden md:inline">
                       {openAccordion === idx ? "Collapse" : "Expand"}
                     </span>
                     {openAccordion === idx ? (
-                      <ChevronUp className="w-5 h-5 text-gray-400" />
+                      <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                     ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-400" />
+                      <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                     )}
                   </div>
                 </div>
@@ -1312,16 +1252,16 @@ function solution(input) {
                 {/* Questions List */}
                 {openAccordion === idx && (
                   <div className="border-t border-gray-200 bg-gray-50">
-                    <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
+                    <div className="p-3 sm:p-4 md:p-6 space-y-2 sm:space-y-3 md:space-y-4">
                       {filteredGroupedQuestions[topic].map((question) => (
                         <div
                           key={question.id}
-                          className="bg-white rounded-lg sm:rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-200 overflow-hidden"
+                          className="bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-all duration-200 overflow-hidden"
                         >
-                          {/* Question Header - Changed from button to div with onClick */}
+                          {/* Question Header */}
                           <div
                             onClick={() => toggleQuestion(question.id)}
-                            className="w-full flex items-center justify-between p-4 sm:p-6 text-left hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+                            className="w-full flex items-center justify-between p-3 sm:p-4 md:p-6 text-left hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
                             role="button"
                             tabIndex={0}
                             onKeyDown={(e) => {
@@ -1331,29 +1271,29 @@ function solution(input) {
                               }
                             }}
                           >
-                            <div className="flex items-start space-x-3 sm:space-x-4 flex-1">
+                            <div className="flex items-start space-x-2 sm:space-x-3 md:space-x-4 flex-1">
                               <div className="flex-shrink-0">
-                                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm">
+                                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-semibold text-xs sm:text-sm">
                                   {question.id}
                                 </div>
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div className="flex flex-wrap items-center gap-2 mb-2">
-                                  <h3 className="text-base sm:text-lg font-semibold text-gray-900">
+                                <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                                  <h5 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900">
                                     {question.program}
-                                  </h3>
+                                  </h5>
                                   <span
-                                    className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(
+                                    className={`px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-xs font-medium ${getDifficultyColor(
                                       question.difficulty
                                     )}`}
                                   >
                                     {question.difficulty}
                                   </span>
                                 </div>
-                                <p className="text-gray-600 text-sm sm:text-base leading-relaxed line-clamp-2">
+                                <p className="text-gray-600 text-xs sm:text-sm md:text-base leading-relaxed line-clamp-2">
                                   {question.description}
                                 </p>
-                                <div className="flex items-center space-x-3 sm:space-x-4 mt-2 text-xs sm:text-sm text-gray-500">
+                                <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 mt-1 sm:mt-2 text-xs text-gray-500">
                                   <div className="flex items-center space-x-1">
                                     <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
                                     <span>{question.timeEstimate}</span>
@@ -1365,7 +1305,7 @@ function solution(input) {
                                 </div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0 ml-2 sm:ml-4">
+                            <div className="flex items-center gap-1 sm:gap-2 md:gap-4 flex-shrink-0 ml-1 sm:ml-2">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -1379,57 +1319,31 @@ function solution(input) {
                                 }
                               >
                                 {completedQuestions[question.id] ? (
-                                  <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" />
+                                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-500" />
                                 ) : (
-                                  <Circle className="w-5 h-5 sm:w-6 sm:h-6 text-gray-300 hover:text-gray-400" />
+                                  <Circle className="w-4 h-4 sm:w-5 sm:h-5 text-gray-300 hover:text-gray-400" />
                                 )}
                               </button>
                               {expandedQuestions[question.id] ? (
-                                <ChevronUp className="w-5 h-5 text-gray-400" />
+                                <ChevronUp className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                               ) : (
-                                <ChevronDown className="w-5 h-5 text-gray-400" />
+                                <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                               )}
                             </div>
                           </div>
 
                           {/* Expanded Content */}
                           {expandedQuestions[question.id] && (
-                            <div className="border-t border-gray-200 bg-gray-50 p-4 sm:p-6">
-                              <div className="space-y-4">
+                            <div className="border-t border-gray-200 bg-gray-50 p-3 sm:p-4 md:p-6">
+                              <div className="space-y-3 sm:space-y-4">
                                 <div>
-                                  <h4 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">
+                                  <h4 className="font-semibold text-gray-900 mb-2 text-xs sm:text-sm md:text-base">
                                     Problem Statement
                                   </h4>
-                                  <div className="bg-white rounded-lg p-3 sm:p-4 border border-gray-200">
-                                    <p className="text-gray-700 text-sm sm:text-base whitespace-pre-line leading-relaxed">
+                                  <div className="bg-white rounded-lg p-2 sm:p-3 md:p-4 border border-gray-200">
+                                    <p className="text-gray-700 text-xs sm:text-sm md:text-base whitespace-pre-line leading-relaxed">
                                       {question.description}
                                     </p>
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <h4 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">
-                                    Sample Code
-                                  </h4>
-                                  <pre className="bg-gray-900 text-gray-100 rounded-lg p-3 sm:p-4 text-xs sm:text-sm overflow-x-auto">
-                                    <code>{question.codeSnippet}</code>
-                                  </pre>
-                                </div>
-
-                                <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <Calendar className="w-4 h-4" />
-                                    <span>
-                                      Last attempted: {question.lastAttempted}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <button
-                                      className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
-                                      aria-label="More options"
-                                    >
-                                      <MoreVertical className="w-5 h-5" />
-                                    </button>
                                   </div>
                                 </div>
                               </div>
@@ -1447,39 +1361,39 @@ function solution(input) {
       </main>
 
       {/* Floating Action Button - Mobile */}
-      <div className="lg:hidden fixed bottom-6 right-6 z-30">
+      <div className="lg:hidden fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-30">
         <button
           onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
-          className="p-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+          className="p-3 sm:p-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
           aria-label={`Switch to ${viewMode === "grid" ? "list" : "grid"} view`}
         >
           {viewMode === "grid" ? (
-            <List className="w-6 h-6" />
+            <List className="w-5 h-5 sm:w-6 sm:h-6" />
           ) : (
-            <Grid className="w-6 h-6" />
+            <Grid className="w-5 h-5 sm:w-6 sm:h-6" />
           )}
         </button>
       </div>
 
       {/* Question Detail Modal */}
       {selectedQuestion && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4">
+          <div className="bg-white rounded-lg sm:rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
               <div>
-                <h3 className="text-xl font-bold text-gray-900">
+                <h5 className="text-base sm:text-lg md:text-xl font-bold text-gray-900">
                   {selectedQuestion.program}
-                </h3>
-                <div className="flex items-center gap-2 mt-2">
+                </h5>
+                <div className="flex items-center gap-1 sm:gap-2 mt-1 sm:mt-2">
                   <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyColor(
+                    className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-medium ${getDifficultyColor(
                       selectedQuestion.difficulty
                     )}`}
                   >
                     {selectedQuestion.difficulty}
                   </span>
                   <span
-                    className={`px-3 py-1 rounded text-sm ${getTopicColor(
+                    className={`px-2 py-0.5 sm:px-3 sm:py-1 rounded text-xs sm:text-sm ${getTopicColor(
                       selectedQuestion.topic
                     )}`}
                   >
@@ -1489,57 +1403,46 @@ function solution(input) {
               </div>
               <button
                 onClick={() => setSelectedQuestion(null)}
-                className="p-2 hover:bg-gray-100 rounded-lg"
+                className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="space-y-6">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-3">
+                  <h4 className="text-sm sm:text-base md:text-lg font-semibold text-gray-900 mb-2 sm:mb-3">
                     Problem Description
                   </h4>
-                  <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-gray-700 whitespace-pre-line leading-relaxed">
+                  <div className="bg-gray-50 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                    <p className="text-gray-700 whitespace-pre-line leading-relaxed text-sm sm:text-base">
                       {selectedQuestion.description}
                     </p>
                   </div>
                 </div>
 
-                <div>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-3">
-                    Starter Code
-                  </h4>
-                  <pre className="bg-gray-900 text-gray-100 rounded-xl p-4 overflow-x-auto">
-                    <code className="text-sm">
-                      {selectedQuestion.codeSnippet}
-                    </code>
-                  </pre>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-blue-50 rounded-xl p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Clock className="w-5 h-5 text-blue-600" />
-                      <span className="font-semibold text-blue-700">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="bg-blue-50 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                    <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                      <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                      <span className="font-semibold text-blue-700 text-sm sm:text-base">
                         Time Estimate
                       </span>
                     </div>
-                    <p className="text-blue-600">
+                    <p className="text-blue-600 text-sm sm:text-base">
                       {selectedQuestion.timeEstimate}
                     </p>
                   </div>
 
-                  <div className="bg-green-50 rounded-xl p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="w-5 h-5 text-green-600" />
-                      <span className="font-semibold text-green-700">
+                  <div className="bg-green-50 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                    <div className="flex items-center gap-1 sm:gap-2 mb-1 sm:mb-2">
+                      <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                      <span className="font-semibold text-green-700 text-sm sm:text-base">
                         Success Rate
                       </span>
                     </div>
-                    <p className="text-green-600">
+                    <p className="text-green-600 text-sm sm:text-base">
                       {selectedQuestion.popularity}% solved
                     </p>
                   </div>
@@ -1547,11 +1450,11 @@ function solution(input) {
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-200 bg-gray-50">
-              <div className="flex items-center justify-between">
+            <div className="p-4 sm:p-6 border-t border-gray-200 bg-gray-50">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
                 <button
                   onClick={() => toggleCompletion(selectedQuestion.id)}
-                  className={`px-4 py-2 rounded-lg font-medium ${
+                  className={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg font-medium w-full sm:w-auto text-sm sm:text-base ${
                     completedQuestions[selectedQuestion.id]
                       ? "bg-green-100 text-green-700 hover:bg-green-200"
                       : "bg-gray-200 text-gray-700 hover:bg-gray-300"
@@ -1561,14 +1464,14 @@ function solution(input) {
                     ? "Mark as Incomplete"
                     : "Mark as Complete"}
                 </button>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   <button
                     onClick={() => {
                       // Handle download/save functionality
                     }}
-                    className="px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50"
+                    className="px-3 py-1.5 sm:px-4 sm:py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 w-full sm:w-auto text-sm sm:text-base"
                   >
-                    <Download className="w-4 h-4 inline mr-2" />
+                    <Download className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
                     Save
                   </button>
                 </div>

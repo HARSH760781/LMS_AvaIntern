@@ -33,7 +33,10 @@ export default function LearningEnvironment() {
   const serverURL = import.meta.env.VITE_BACKEND_URL;
 
   const prettyTitle = (str) =>
-    str.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+    str
+      .replace(/-/g, " ")
+      .toLowerCase()
+      .replace(/\b\w/g, (c) => c.toUpperCase());
 
   useEffect(() => {
     const fetchData = async () => {

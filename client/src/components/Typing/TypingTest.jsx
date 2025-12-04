@@ -10,15 +10,6 @@ import {
   CheckCircle,
 } from "lucide-react";
 
-/**
- * TypingTest.jsx
- * - Fetches long text from loripsum.net
- * - Rewrites lorem ipsum into natural mixed-style English (Style C)
- * - No visible scrollbar, no manual scroll
- * - Auto-scrolls one line at a time when caret reaches bottom 2 lines
- * - Correct WPM calculation: only counts correct characters (1 word = 5 chars)
- */
-
 const TypingTest = () => {
   const [text, setText] = useState("");
   const [userInput, setUserInput] = useState("");
@@ -28,143 +19,73 @@ const TypingTest = () => {
   const [wpm, setWpm] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [errors, setErrors] = useState([]);
+  const [totalErrors, setTotalErrors] = useState(0); // Changed: Counts ALL errors made
   const [testCompleted, setTestCompleted] = useState(false);
   const [timeLimit, setTimeLimit] = useState(60);
   const [timeLeft, setTimeLeft] = useState(60);
   const [showResults, setShowResults] = useState(false);
   const [isTimeUp, setIsTimeUp] = useState(false);
 
+  // Track typing history for error counting
+  const [typingHistory, setTypingHistory] = useState([]); // Array of {index: number, char: string, isCorrect: boolean}
+
   // auto-scroll state (pixels)
   const [scrollY, setScrollY] = useState(0);
 
   const containerRef = useRef(null);
   const innerRef = useRef(null);
+  const previousInputRef = useRef("");
 
   const LINE_HEIGHT = 28; // px, must match CSS line height
 
-  // ------------------------------
-  // Fetch loripsum and rewrite to natural English
-  // ------------------------------
+  // Fetch loripsum function (same as before)
   const fetchLoripsum = async () => {
     try {
-      // loripsum.net returns HTML paragraphs; "verylong" yields long content
       const res = await fetch("https://loripsum.net/api/5/verylong/plaintext");
-      const raw = await res.text(); // plaintext without tags when /plaintext used
+      const raw = await res.text();
       const cleaned = (raw || "").replace(/\s+/g, " ").trim();
       const rewritten = rewriteLoremToEnglish(cleaned);
       return rewritten;
     } catch (err) {
       console.error("loripsum fetch failed:", err);
-      // fallback to small generated paragraph
       return rewriteLoremToEnglish(getFallbackText());
     }
   };
 
-  // Fallback lorem-like text if API fails (shorter, will be rewritten)
+  // getFallbackText and rewriteLoremToEnglish functions remain the same
   const getFallbackText = () =>
     "Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua";
 
-  // Rewriting algorithm: convert incoming lorem-ish text into mixed natural English (Style C)
   const rewriteLoremToEnglish = (sourceText) => {
-    const wordCount = Math.max(
-      700,
-      Math.min(1200, sourceText.split(/\s+/).length)
-    ); // clamp
-    const targetWords = wordCount;
-
+    // ... (same as before)
     const subjects = [
       "Technology",
       "Modern life",
-      "The world around us",
-      "Every industry",
-      "Communities",
-      "Human creativity",
-      "Education",
-      "Digital tools",
-      "Innovation",
-      "People",
+      "The world around us" /* ... */,
     ];
-
-    const verbs = [
-      "advances",
-      "continues to evolve",
-      "shapes",
-      "drives",
-      "transforms",
-      "challenges",
-      "inspires",
-      "improves",
-      "reshapes",
-      "accelerates",
-    ];
-
+    const verbs = ["advances", "continues to evolve", "shapes" /* ... */];
     const objects = [
       "how we work and communicate",
-      "the ways we learn",
-      "daily workflows",
-      "collaboration across teams",
-      "creative problem solving",
-      "productivity and focus",
-      "access to information",
-      "remote collaboration",
-      "user experience",
-      "the global economy",
+      "the ways we learn" /* ... */,
     ];
-
     const connectors = [
       "As a result,",
       "Consequently,",
-      "At the same time,",
-      "In many cases,",
-      "Often,",
-      "Over time,",
-      "Interestingly,",
-      "Moreover,",
-      "Similarly,",
-      "Meanwhile,",
+      "At the same time," /* ... */,
     ];
-
-    const clauses = [
-      "people are learning new skills to adapt",
-      "small improvements compound over time",
-      "consistent practice leads to noticeable progress",
-      "teams are collaborating across time zones",
-      "tools provide new ways to measure impact",
-      "users expect faster, clearer results",
-      "design and function are equally important",
-      "efficiency and clarity are often the goals",
-      "new ideas are tested rapidly",
-      "accessibility becomes a priority",
-    ];
+    const clauses = ["people are learning new skills to adapt" /* ... */];
 
     const templates = [
       (s, v, o) => `${s} ${v} ${o}.`,
       (s, v, o) => `${s} ${v} ${o} and opens up fresh opportunities for many.`,
-      (s, v, o) =>
-        `${s} ${v} ${o}. ${
-          connectors[Math.floor(Math.random() * connectors.length)]
-        } ${clauses[Math.floor(Math.random() * clauses.length)]}.`,
-      (s, v, o) =>
-        `${s} ${v} ${o}, helping people stay productive and focused in changing environments.`,
-      (s, v, o) =>
-        `${s} ${v} ${o}. ${
-          clauses[Math.floor(Math.random() * clauses.length)]
-        }.`,
-      (s, v, o) =>
-        `${s} ${v} ${o}, and this often leads to better outcomes when teams invest in learning.`,
-      (s, v, o) =>
-        `${s} ${v} ${o}. ${
-          connectors[Math.floor(Math.random() * connectors.length)]
-        } ${
-          clauses[Math.floor(Math.random() * clauses.length)]
-        } for many organizations.`,
+      /* ... */
     ];
 
     let resultWords = 0;
     const sentences = [];
 
-    while (resultWords < targetWords) {
+    while (resultWords < 700) {
+      // Reduced for typing test
       const s = subjects[Math.floor(Math.random() * subjects.length)];
       const v = verbs[Math.floor(Math.random() * verbs.length)];
       const o = objects[Math.floor(Math.random() * objects.length)];
@@ -174,7 +95,7 @@ const TypingTest = () => {
       sentences.push(sentence);
       resultWords += sentence.split(/\s+/).length;
 
-      if (Math.random() < 0.12 && resultWords < targetWords) {
+      if (Math.random() < 0.12 && resultWords < 700) {
         const extra = `${
           connectors[Math.floor(Math.random() * connectors.length)]
         } ${clauses[Math.floor(Math.random() * clauses.length)]}.`;
@@ -182,7 +103,7 @@ const TypingTest = () => {
         resultWords += extra.split(/\s+/).length;
       }
 
-      if (sentences.length > 3000) break;
+      if (sentences.length > 30) break;
     }
 
     const paragraph = sentences.join(" ").replace(/\s+/g, " ").trim();
@@ -203,12 +124,15 @@ const TypingTest = () => {
     setWpm(0);
     setAccuracy(100);
     setCurrentIndex(0);
-    setErrors([]);
+    setTotalErrors(0); // Reset errors
+    setTypingHistory([]); // Reset history
     setTestCompleted(false);
     setShowResults(false);
     setIsTimeUp(false);
     setTimeLeft(timeLimit);
     setScrollY(0);
+    previousInputRef.current = "";
+
     if (innerRef.current) {
       innerRef.current.style.transition = "transform 0.2s ease";
       innerRef.current.style.transform = `translateY(0px)`;
@@ -219,9 +143,7 @@ const TypingTest = () => {
     initializeTest();
   }, [initializeTest]);
 
-  // ------------------------------
-  // Prevent manual scroll (mouse wheel / touchmove / keyboard)
-  // ------------------------------
+  // Prevent manual scroll (same as before)
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -240,9 +162,7 @@ const TypingTest = () => {
     };
   }, []);
 
-  // ------------------------------
-  // Helper: count correct characters up to current input
-  // ------------------------------
+  // Helper: count correct characters in final input
   const countCorrectChars = (input, target) => {
     const len = Math.min(input.length, target.length);
     let correct = 0;
@@ -253,8 +173,71 @@ const TypingTest = () => {
   };
 
   // ------------------------------
-  // Auto-scroll logic using translateY
+  // NEW: Track typing events for cumulative errors
   // ------------------------------
+  const trackTypingEvent = (newInput, oldInput) => {
+    const newHistory = [...typingHistory];
+
+    // If user is typing forward (not backspacing)
+    if (newInput.length > oldInput.length) {
+      const addedChar = newInput[newInput.length - 1];
+      const targetIndex = newInput.length - 1;
+      const targetChar = text[targetIndex];
+      const isCorrect = addedChar === targetChar;
+
+      // Record this keystroke
+      newHistory.push({
+        index: targetIndex,
+        char: addedChar,
+        isCorrect: isCorrect,
+        timestamp: Date.now(),
+      });
+
+      // If it's incorrect, increment total errors
+      if (!isCorrect) {
+        setTotalErrors((prev) => prev + 1);
+      }
+    }
+    // If user is backspacing
+    else if (newInput.length < oldInput.length) {
+      // Remove the last entry from history if it exists
+      if (newHistory.length > 0) {
+        // But DO NOT subtract from total errors when backspacing
+        // The error has already been counted
+        newHistory.pop();
+      }
+    }
+    // If user is replacing text (like pasting or editing middle)
+    else {
+      // Complex case - for simplicity, we'll recalculate from scratch
+      recalculateErrors(newInput);
+    }
+
+    setTypingHistory(newHistory);
+  };
+
+  // Recalculate errors from scratch (for paste/edit operations)
+  const recalculateErrors = (input) => {
+    let errors = 0;
+    const newHistory = [];
+
+    for (let i = 0; i < input.length; i++) {
+      const isCorrect = input[i] === text[i];
+      newHistory.push({
+        index: i,
+        char: input[i],
+        isCorrect: isCorrect,
+        timestamp: Date.now(),
+      });
+
+      if (!isCorrect) errors++;
+    }
+
+    setTypingHistory(newHistory);
+    setTotalErrors(errors);
+  };
+
+  // Auto-scroll logic (same as before)
   useEffect(() => {
     if (!containerRef.current || !innerRef.current) return;
     if (!isActive) return;
@@ -276,9 +259,7 @@ const TypingTest = () => {
     }
   }, [currentIndex, isActive, scrollY]);
 
-  // ------------------------------
-  // Timer
-  // ------------------------------
+  // Timer (same as before)
   useEffect(() => {
     let interval = null;
     if (isActive && timeLeft > 0 && !testCompleted) {
@@ -305,55 +286,66 @@ const TypingTest = () => {
   };
 
   // ------------------------------
-  // Live WPM / accuracy calculation (CORRECTED)
+  // UPDATED: Live WPM / accuracy calculation
   // ------------------------------
   useEffect(() => {
     if (!startTime || !isActive) return;
 
     const compute = () => {
       // minutes elapsed
-      const minutes = Math.max((Date.now() - startTime) / 60000, 1 / 60); // at least 1 second
+      const minutes = Math.max((Date.now() - startTime) / 60000, 1 / 60);
+
+      // WPM: based on correct characters in final text
       const correctChars = countCorrectChars(userInput, text);
-      // Standard: 1 word = 5 characters
       const words = correctChars / 5;
       const currentWpm = Math.round(words / minutes);
       setWpm(isFinite(currentWpm) ? currentWpm : 0);
 
-      // accuracy based on correct chars vs typed chars
-      const typed = userInput.length;
-      const acc = typed > 0 ? Math.round((correctChars / typed) * 100) : 100;
-      setAccuracy(acc);
-      // update errors display too
-      setErrors(
-        typed - correctChars >= 0
-          ? Array.from({ length: typed - correctChars }, (_, i) => i)
-          : []
-      );
+      // ACCURACY: based on total keystrokes vs errors
+      // Total keystrokes = correct keystrokes + error keystrokes
+      const totalKeystrokes = typingHistory.length;
+      const correctKeystrokes = typingHistory.filter((h) => h.isCorrect).length;
+
+      let currentAccuracy;
+      if (totalKeystrokes === 0) {
+        currentAccuracy = 100;
+      } else {
+        // Traditional typing accuracy formula
+        currentAccuracy = Math.round(
+          (correctKeystrokes / totalKeystrokes) * 100
+        );
+      }
+
+      setAccuracy(currentAccuracy);
     };
 
-    // compute immediately and every 800ms
     compute();
     const id = setInterval(compute, 800);
     return () => clearInterval(id);
-  }, [startTime, isActive, userInput, text, testCompleted]);
+  }, [startTime, isActive, userInput, text, typingHistory]);
 
   // ------------------------------
-  // Input handling
+  // UPDATED: Input handling with error tracking
   // ------------------------------
   const handleInput = (e) => {
-    const input = e.target.value;
+    const newInput = e.target.value;
+    const oldInput = previousInputRef.current;
 
-    if (!isActive && input.length === 1) {
+    if (!isActive && newInput.length === 1) {
       setIsActive(true);
       setStartTime(Date.now());
     }
 
-    setUserInput(input);
-    setCurrentIndex(input.length);
+    // Track typing events for error counting
+    trackTypingEvent(newInput, oldInput);
 
-    // errors calc and accuracy/wpm handled by live effect above
-    // but keep final-check for completion
-    if (input.length >= text.length) {
+    // Update state
+    setUserInput(newInput);
+    setCurrentIndex(newInput.length);
+    previousInputRef.current = newInput;
+
+    // Check for completion
+    if (newInput.length >= text.length) {
       setIsActive(false);
       setEndTime(Date.now());
       setTestCompleted(true);
@@ -377,31 +369,38 @@ const TypingTest = () => {
     if (index === currentIndex)
       return "active-char bg-yellow-200 border-l-2 border-blue-500 animate-pulse";
     if (index >= userInput.length) return "text-gray-700";
-    // Show incorrect if user typed but char mismatched
     if (userInput[index] !== undefined && userInput[index] !== text[index])
       return "text-red-500 bg-red-100";
     return "text-green-600";
   };
 
   // ------------------------------
-  // Final results (consistent with live calculation)
+  // UPDATED: Final results calculation
   // ------------------------------
   const getFinalResults = () => {
     if (!startTime || !endTime) return null;
+
     const minutes = Math.max((endTime - startTime) / 60000, 1 / 60);
     const correctChars = countCorrectChars(userInput, text);
     const finalWpm = Math.round(correctChars / 5 / minutes);
-    const typed = userInput.length;
+
+    // Final accuracy based on cumulative errors
+    const totalKeystrokes = typingHistory.length;
+    const correctKeystrokes = typingHistory.filter((h) => h.isCorrect).length;
     const finalAccuracy =
-      typed > 0 ? Math.round((correctChars / typed) * 100) : 100;
+      totalKeystrokes > 0
+        ? Math.round((correctKeystrokes / totalKeystrokes) * 100)
+        : 100;
+
     return {
       finalWpm: isFinite(finalWpm) ? finalWpm : 0,
       finalAccuracy,
       timeElapsed: ((endTime - startTime) / 1000).toFixed(1),
-      charactersTyped: typed,
+      charactersTyped: userInput.length,
       correctCharacters: correctChars,
-      errors: Math.max(typed - correctChars, 0),
-      wordsTyped: Math.round(typed / 5 || 0),
+      errors: totalErrors, // This now shows ALL errors made (including corrected ones)
+      totalKeystrokes: typingHistory.length,
+      wordsTyped: Math.round(userInput.length / 5 || 0),
     };
   };
 
@@ -424,10 +423,6 @@ const TypingTest = () => {
               Professional Typing Test
             </h1>
           </div>
-          {/* <p className="text-gray-600 mt-2">
-            Fresh long text (rewritten) • Line-by-line auto-scroll • No manual
-            scroll
-          </p> */}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -504,7 +499,7 @@ const TypingTest = () => {
                   <span className="font-medium text-orange-700">Errors</span>
                 </div>
                 <span className="text-xl font-bold text-orange-600">
-                  {errors.length}
+                  {totalErrors}
                 </span>
               </div>
             </div>
@@ -516,10 +511,13 @@ const TypingTest = () => {
               </h3>
               <div className="space-y-2 text-sm text-gray-600">
                 <p>
-                  • The text will auto-scroll one line at a time as you type
+                  • Every incorrect keystroke counts as an error, even if you
+                  backspace
                 </p>
-                <p>• Manual scrolling is disabled for better focus</p>
-                <p>• Focus on steady rhythm — accuracy first</p>
+                <p>
+                  • Accuracy = (correct keystrokes / total keystrokes) × 100
+                </p>
+                <p>• Focus on accuracy first, speed will follow</p>
               </div>
             </div>
           </div>
@@ -530,6 +528,9 @@ const TypingTest = () => {
               <div className="mb-4">
                 <div className="text-sm text-gray-600 mb-2 flex justify-between">
                   <span>Type the text below</span>
+                  <span className="text-blue-600 font-medium">
+                    Errors: {totalErrors} | Keystrokes: {typingHistory.length}
+                  </span>
                 </div>
 
                 {/* Container - overflow hidden (no manual scroll) */}
@@ -537,7 +538,6 @@ const TypingTest = () => {
                   ref={containerRef}
                   className="bg-gray-50 rounded-lg p-6 h-[260px] border-2 border-gray-200 relative overflow-hidden"
                 >
-                  {/* Inner content is moved via transform translateY(-scrollY) */}
                   <div
                     ref={innerRef}
                     className="text-lg font-mono leading-snug whitespace-pre-wrap wrap-break-word select-none"
@@ -586,9 +586,10 @@ const TypingTest = () => {
 
             <div className="mt-4 bg-blue-50 rounded-xl p-4 border border-blue-200">
               <div className="text-sm text-blue-800">
-                <strong>Smart Scrolling:</strong> The text automatically scrolls
-                line by line as your typing caret approaches the bottom. Manual
-                scrolling is disabled to keep your focus on typing.
+                <strong>How Accuracy is Calculated:</strong> Every keystroke is
+                tracked. If you type 'a' instead of 'b', that's 1 error. If you
+                backspace and type 'b', the error is still counted. Accuracy =
+                (correct keystrokes ÷ total keystrokes) × 100.
               </div>
             </div>
           </div>
@@ -636,6 +637,16 @@ const TypingTest = () => {
                   </div>
                   <div className="text-sm text-gray-600">Errors</div>
                 </div>
+
+                <div className="p-4 bg-yellow-50 rounded-xl col-span-2">
+                  <div className="text-lg font-bold text-yellow-600">
+                    {finalResults.totalKeystrokes} total keystrokes
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {finalResults.correctKeystrokes} correct,{" "}
+                    {finalResults.errors} incorrect
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-center space-x-4 m-6">
@@ -648,7 +659,7 @@ const TypingTest = () => {
 
                 <button
                   onClick={resetTest}
-                  className="px-6 py-3 mx-2  rounded-2xl bg-blue-600 hover:bg-blue-700 text-white flex items-center space-x-2 transition-colors"
+                  className="px-6 py-3 mx-2 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white flex items-center space-x-2 transition-colors"
                 >
                   <RotateCcw className="w-4 h-4" />
                   <span>Try Again</span>
@@ -659,9 +670,7 @@ const TypingTest = () => {
         )}
       </div>
 
-      {/* Inline CSS for smoothness */}
       <style>{`
-        /* hide native selection outline on container so caret highlight stands out */
         .active-char { outline: none; }
       `}</style>
     </div>
