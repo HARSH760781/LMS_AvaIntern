@@ -67,7 +67,8 @@ export default function LearningEnvironment() {
   }, [courseTitle, serverURL]);
 
   const handleStartTest = (test) => {
-    navigate(`/test/view/${test._id}`);
+    // Pass BOTH: file._id AND the current courseTitle
+    navigate(`/test/view/${courseTitle}/${test._id}`);
   };
 
   const handlePdfView = (material) => {

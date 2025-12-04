@@ -139,7 +139,7 @@ function App() {
           />
 
           <Route
-            path="/test/view/:id"
+            path="/test/view/:courseTitle/:fileId"
             element={
               <VerifyAccess>
                 <TestFileView />

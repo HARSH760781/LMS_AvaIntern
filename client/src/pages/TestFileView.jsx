@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
 import {
   ArrowLeft,
@@ -35,7 +36,7 @@ import {
 } from "lucide-react";
 
 export default function TestFileView() {
-  const { id } = useParams();
+  const { courseTitle, fileId } = useParams();
   const navigate = useNavigate();
   const serverURL = import.meta.env.VITE_BACKEND_URL;
 
@@ -82,54 +83,6 @@ export default function TestFileView() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-
-  useEffect(() => {
-    const fetchExcel = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`${serverURL}/api/programs/file/${id}`);
-        if (!res.ok) throw new Error("Failed to fetch file");
-
-        const fileData = await res.blob();
-        const buffer = await fileData.arrayBuffer();
-        const workbook = XLSX.read(buffer, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-
-        const data = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-        const formattedData = data.map((row, index) => ({
-          id: index + 1,
-          program: row.Programs || row.program || `Program ${index + 1}`,
-          topic: row.Topic || row.topic || data[index]?.Course || sheetName,
-          difficulty: row.Difficulty || row.difficulty || "Medium",
-          description: getProgramDescription(row.Programs || row.program),
-          timeEstimate: getTimeEstimate(row.Difficulty || row.difficulty),
-          popularity: Math.floor(Math.random() * 100) + 1,
-          attempts: Math.floor(Math.random() * 50) + 5,
-          lastAttempted: getRandomDate(),
-          codeSnippet: generateCodeSnippet(row.Programs || row.program),
-        }));
-        // console.log(formattedData);
-
-        setQuestions(formattedData);
-
-        const grouped = formattedData.reduce((acc, row) => {
-          const topic = row.topic;
-          if (!acc[topic]) acc[topic] = [];
-          acc[topic].push(row);
-          return acc;
-        }, {});
-
-        setGroupedQuestions(grouped);
-      } catch (err) {
-        console.error("Error reading Excel file:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchExcel();
-  }, [id, serverURL]);
 
   // Helper functions
   const getProgramDescription = (program) => {
@@ -199,9 +152,187 @@ export default function TestFileView() {
     };
     return (
       snippets[program] ||
-      "// Write your solution here\n// Start by understanding the problem requirements"
+      `// ${program}
+// Write your solution here
+
+function solution(input) {
+  // Your code here
+  return result;
+}`
     );
   };
+
+  // Format Excel data into questions
+  const formatExcelData = (rawData) => {
+    if (!rawData || rawData.length === 0) {
+      // console.log("No data in Excel file");
+      return [];
+    }
+
+    return rawData.map((row, index) => {
+      // Try to detect column names - common variations
+      const columnNames = Object.keys(row);
+
+      // Find program/title column
+      let program = "";
+      if (columnNames.includes("Program")) program = row["Program"];
+      else if (columnNames.includes("Problem")) program = row["Problem"];
+      else if (columnNames.includes("Question")) program = row["Question"];
+      else if (columnNames.includes("Title")) program = row["Title"];
+      else if (columnNames.includes("Name")) program = row["Name"];
+      else program = `Problem ${index + 1}`;
+
+      // Find topic column
+      let topic = "";
+      if (columnNames.includes("Topic")) topic = row["Topic"];
+      else if (columnNames.includes("Category")) topic = row["Category"];
+      else if (columnNames.includes("Type")) topic = row["Type"];
+      else topic = "General";
+
+      // Find difficulty column
+      let difficulty = "";
+      if (columnNames.includes("Difficulty")) difficulty = row["Difficulty"];
+      else if (columnNames.includes("Level")) difficulty = row["Level"];
+      else difficulty = "Medium";
+
+      // Find description column
+      let description = "";
+      if (columnNames.includes("Description")) description = row["Description"];
+      else if (columnNames.includes("Problem Statement"))
+        description = row["Problem Statement"];
+      else if (columnNames.includes("Question Description"))
+        description = row["Question Description"];
+      else description = getProgramDescription(program);
+
+      return {
+        id: index + 1,
+        program: program,
+        topic: topic,
+        difficulty: difficulty,
+        description: description,
+        timeEstimate: getTimeEstimate(difficulty),
+        popularity: Math.floor(Math.random() * 30) + 70, // Random 70-100%
+        attempts: Math.floor(Math.random() * 500) + 100,
+        lastAttempted: getRandomDate(),
+        codeSnippet: generateCodeSnippet(program),
+        // Keep all original data
+        rawData: row,
+      };
+    });
+  };
+
+  // Group questions by topic
+  const groupQuestionsByTopic = (questions) => {
+    const grouped = {};
+
+    questions.forEach((question) => {
+      const topic = question.topic;
+      if (!grouped[topic]) {
+        grouped[topic] = [];
+      }
+      grouped[topic].push(question);
+    });
+
+    return grouped;
+  };
+
+  useEffect(() => {
+    const fetchExcel = async () => {
+      try {
+        setLoading(true);
+
+        const url = `${serverURL}/api/programs/file/${fileId}?courseTitle=${encodeURIComponent(
+          courseTitle
+        )}`;
+        // console.log("Request URL:", url);
+
+        const res = await fetch(url);
+        // console.log("Response status:", res.status);
+
+        if (!res.ok) {
+          const contentType = res.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const errorData = await res.json();
+            console.error("Error response from server:", errorData);
+            throw new Error(errorData.message || `Server error: ${res.status}`);
+          } else {
+            const errorText = await res.text();
+            // console.error("Error text response:", errorText);
+            throw new Error(
+              `Failed to fetch file: ${res.status} ${res.statusText}`
+            );
+          }
+        }
+
+        const fileData = await res.blob();
+        // console.log(
+        //   "✅ Blob received - Size:",
+        //   fileData.size,
+        //   "Type:",
+        //   fileData.type
+        // );
+
+        if (fileData.size === 0) {
+          throw new Error("Received empty file from server");
+        }
+
+        const buffer = await fileData.arrayBuffer();
+        // console.log("Buffer size:", buffer.byteLength);
+
+        const workbook = XLSX.read(buffer, { type: "array" });
+        // console.log("Excel parsed successfully. Sheets:", workbook.SheetNames);
+
+        const sheetName = workbook.SheetNames[0];
+        const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+        // console.log("Parsed data rows:", rawData.length);
+        // console.log("First few rows:", rawData.slice(0, 3));
+
+        // Format the Excel data into questions
+        const formattedQuestions = formatExcelData(rawData);
+        // console.log("Formatted questions count:", formattedQuestions.length);
+
+        setQuestions(formattedQuestions);
+
+        // Group questions by topic
+        const grouped = groupQuestionsByTopic(formattedQuestions);
+        // console.log("Grouped questions topics:", Object.keys(grouped));
+        setGroupedQuestions(grouped);
+
+        // Initialize some questions as completed for demo
+        const initialCompleted = {};
+        formattedQuestions.slice(0, 3).forEach((q, idx) => {
+          if (idx % 3 === 0) {
+            initialCompleted[q.id] = true;
+          }
+        });
+        setCompletedQuestions(initialCompleted);
+      } catch (err) {
+        // Show professional toast notification
+        toast.error(`Failed to load file: ${err.message}`, {
+          duration: 5000,
+          position: "top-right",
+          style: {
+            background: "#ef4444",
+            color: "white",
+            borderRadius: "12px",
+            padding: "16px",
+            fontWeight: "500",
+          },
+          icon: "❌",
+        });
+
+        // Optionally set an error state for UI
+        setError({
+          message: err.message,
+          details: err.stack,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExcel();
+  }, [fileId, courseTitle, serverURL]);
 
   const toggleQuestion = (questionId) => {
     setExpandedQuestions((prev) => ({
@@ -229,7 +360,8 @@ export default function TestFileView() {
         const matchesSearch =
           searchTerm === "" ||
           q.program.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          q.topic.toLowerCase().includes(searchTerm.toLowerCase());
+          q.topic.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          q.description.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesTab =
           activeTab === "all" ||
           (activeTab === "completed" && completedQuestions[q.id]) ||
@@ -273,8 +405,13 @@ export default function TestFileView() {
         "bg-gradient-to-r from-indigo-100 to-indigo-50 text-indigo-800 border-indigo-200",
       "Dynamic Programming":
         "bg-gradient-to-r from-pink-100 to-pink-50 text-pink-800 border-pink-200",
+      General:
+        "bg-gradient-to-r from-gray-100 to-gray-50 text-gray-800 border-gray-200",
     };
-    return colors[topic] || "bg-gray-100 text-gray-800 border-gray-200";
+    return (
+      colors[topic] ||
+      "bg-gradient-to-r from-gray-100 to-gray-50 text-gray-800 border-gray-200"
+    );
   };
 
   const uniqueTopics = [...new Set(questions.map((q) => q.topic))];
@@ -350,32 +487,130 @@ export default function TestFileView() {
     );
   }
 
+  // Debug view if no questions loaded
+  if (!loading && questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+        <div className="bg-white border-b border-gray-200 shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 mb-6"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              <span className="font-medium">Back to Course</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="bg-white rounded-2xl shadow-lg p-8 text-center">
+            <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <FileText className="w-10 h-10 text-red-600" />
+            </div>
+            <h4 className="text-2xl font-bold text-gray-900 mb-4">
+              No Questions Loaded
+            </h4>
+            <p className="text-gray-600 mb-6">
+              The Excel file was loaded but no questions could be parsed. This
+              could be because:
+            </p>
+            <div className="text-left bg-gray-50 rounded-lg p-4 mb-6">
+              <ul className="list-disc pl-5 space-y-2 text-gray-600">
+                <li>The Excel file is empty or has no data</li>
+                <li>The Excel format doesn't match expected columns</li>
+                <li>There was an error parsing the file structure</li>
+                <li>Check the browser console for detailed error messages</li>
+              </ul>
+            </div>
+
+            <div className="space-y-4">
+              <button
+                onClick={async () => {
+                  // Test the API endpoint directly
+                  const url = `${serverURL}/api/programs/file/${fileId}?courseTitle=${encodeURIComponent(
+                    courseTitle
+                  )}`;
+                  console.log("Testing URL:", url);
+
+                  try {
+                    const res = await fetch(url);
+                    console.log("Response status:", res.status);
+
+                    if (res.ok) {
+                      const blob = await res.blob();
+                      console.log("Blob size:", blob.size);
+                      console.log("Blob type:", blob.type);
+
+                      // Try to read as text
+                      const text = await blob.text();
+                      console.log("First 200 chars:", text.substring(0, 200));
+
+                      alert("Check browser console for debug info");
+                    } else {
+                      const errorText = await res.text();
+                      console.error("Error:", errorText);
+                      alert("Error fetching file");
+                    }
+                  } catch (err) {
+                    console.error("Debug error:", err);
+                    alert("Network error - check console");
+                  }
+                }}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+              >
+                Debug API Response
+              </button>
+
+              <button
+                onClick={() => navigate(-1)}
+                className="block w-full px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+              >
+                Go Back
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={containerRef}
       className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50"
     >
       {/* Sticky Header */}
-      <header className="sticky top-0  bg-white/90 backdrop-blur-md border-b border-gray-200 shadow-sm">
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Mobile Top Bar */}
-          <div className="flex items-center justify-between py-4 lg:hidden">
+          {/* Mobile Top Bar - Improved for full text visibility */}
+          <div className="flex items-center justify-between py-3 sm:py-4 lg:hidden">
+            {/* Left: Back Button */}
             <button
               onClick={() => navigate(-1)}
-              className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+              className="flex-shrink-0 p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors mr-2"
               aria-label="Go back"
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
 
-            <div className="flex items-center gap-2">
-              <h1 className="text-lg font-bold text-gray-900 truncate max-w-[150px]">
-                Programming Assessment
-              </h1>
-              <Hash className="w-4 h-4 text-blue-500" />
+            {/* Center: Title - Now shows full text */}
+            <div className="flex-1 min-w-0 mx-2">
+              <div className="flex items-center justify-center gap-2 min-w-0">
+                <div className="text-center min-w-0">
+                  <h4 className="text-base sm:text-lg font-bold text-gray-900 line-clamp-1 text-pretty">
+                    {courseTitle || "Programming Assessment"}
+                  </h4>
+                  <p className="text-xs text-gray-500 line-clamp-1 text-pretty mt-0.5">
+                    Master programming skills
+                  </p>
+                </div>
+                <Hash className="w-4 h-4 text-blue-500 flex-shrink-0" />
+              </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* Right: Action Buttons */}
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 ml-2">
               <button
                 onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
                 className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
@@ -401,77 +636,132 @@ export default function TestFileView() {
             </div>
           </div>
 
-          {/* Desktop Header */}
-          <div className="hidden lg:block py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-6">
-                <button
-                  onClick={() => navigate(-1)}
-                  className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 bg-gray-100 hover:bg-gray-200 px-4 py-2.5 rounded-xl font-medium group"
-                >
-                  <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                  <span>Back</span>
-                </button>
-                <div className="w-px h-8 bg-gray-300"></div>
-                <div>
-                  <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
-                    Programming Assessment
-                  </h1>
-                  <p className="text-gray-600 mt-1 text-sm lg:text-base">
-                    Master your skills with curated programming challenges
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">View:</span>
-                  <button
-                    onClick={() =>
-                      setViewMode(viewMode === "grid" ? "list" : "grid")
-                    }
-                    className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
-                    aria-label={`Switch to ${
-                      viewMode === "grid" ? "list" : "grid"
-                    } view`}
-                  >
-                    {viewMode === "grid" ? (
-                      <List className="w-5 h-5" />
-                    ) : (
-                      <Grid className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-                <button
-                  onClick={toggleFullscreen}
-                  className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
-                  aria-label="Toggle fullscreen"
-                >
-                  {isFullscreen ? (
-                    <Minimize2 className="w-5 h-5" />
-                  ) : (
-                    <Maximize2 className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Progress Bar - Mobile */}
-          <div className="lg:hidden px-4 pb-4">
+          {/* Mobile Progress Bar - Moved below for better space */}
+          <div className="lg:hidden mt-2 px-2">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-medium text-gray-700">
-                {completedCount}/{totalQuestions} completed
+              <span className="text-xs font-medium text-gray-700">
+                Progress: {completedCount}/{totalQuestions}
               </span>
-              <span className="text-sm font-bold text-blue-600">
+              <span className="text-xs font-bold text-blue-600">
                 {Math.round(totalProgress)}%
               </span>
             </div>
-            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
               <div
-                className="h-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500 ease-out"
+                className="h-1.5 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500 ease-out"
                 style={{ width: `${totalProgress}%` }}
               ></div>
+            </div>
+          </div>
+
+          {/* Desktop Header - Enhanced for full text visibility */}
+          <div className="hidden lg:block">
+            <div className="py-4">
+              <div className="flex items-center justify-between">
+                {/* Left Section: Back button and title */}
+                <div className="flex items-center space-x-6 flex-1 min-w-0">
+                  <button
+                    onClick={() => navigate(-1)}
+                    className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 bg-gray-100 hover:bg-gray-200 px-4 py-2.5 rounded-xl font-medium group flex-shrink-0"
+                  >
+                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                    <span>Back</span>
+                  </button>
+
+                  <div className="w-px h-8 bg-gray-300 flex-shrink-0"></div>
+
+                  {/* Title with full visibility */}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 text-pretty break-words min-w-0">
+                        {courseTitle
+                          ? `${courseTitle}`
+                          : "Programming Assessment"}
+                      </h1>
+                      <span className="text-sm font-medium text-blue-600 bg-blue-50 px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0">
+                        Assessment
+                      </span>
+                    </div>
+                    <p className="text-gray-600 text-sm lg:text-base text-pretty break-words">
+                      {courseTitle
+                        ? "Master your skills with curated programming challenges"
+                        : "Curated programming challenges to enhance your skills"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right Section: Controls */}
+                <div className="flex items-center gap-4 flex-shrink-0 ml-6">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600 hidden xl:inline">
+                      View:
+                    </span>
+                    <button
+                      onClick={() =>
+                        setViewMode(viewMode === "grid" ? "list" : "grid")
+                      }
+                      className="p-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex items-center gap-2"
+                      aria-label={`Switch to ${
+                        viewMode === "grid" ? "list" : "grid"
+                      } view`}
+                    >
+                      {viewMode === "grid" ? (
+                        <>
+                          <List className="w-5 h-5" />
+                          <span className="text-sm hidden 2xl:inline">
+                            List
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Grid className="w-5 h-5" />
+                          <span className="text-sm hidden 2xl:inline">
+                            Grid
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <div className="w-px h-6 bg-gray-300"></div>
+                  <button
+                    onClick={toggleFullscreen}
+                    className="p-2.5 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex items-center gap-2"
+                    aria-label="Toggle fullscreen"
+                  >
+                    {isFullscreen ? (
+                      <>
+                        <Minimize2 className="w-5 h-5" />
+                        <span className="text-sm hidden 2xl:inline">Exit</span>
+                      </>
+                    ) : (
+                      <>
+                        <Maximize2 className="w-5 h-5" />
+                        <span className="text-sm hidden 2xl:inline">
+                          Fullscreen
+                        </span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Progress Bar - Desktop */}
+              <div className="mt-4">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-sm font-medium text-gray-700">
+                    {completedCount}/{totalQuestions} completed
+                  </span>
+                  <span className="text-sm font-bold text-blue-600">
+                    {Math.round(totalProgress)}%
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className="h-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${totalProgress}%` }}
+                  ></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -928,12 +1218,6 @@ export default function TestFileView() {
                           <ChevronDown className="w-4 h-4" />
                         )}
                       </button>
-                      {/* <button
-                        onClick={() => setSelectedQuestion(question)}
-                        className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
-                      >
-                        Solve
-                      </button> */}
                     </div>
                   </div>
 
@@ -952,13 +1236,24 @@ export default function TestFileView() {
                           </div>
                         </div>
 
-                        <div>
+                        {/* <div>
                           <h4 className="font-semibold text-gray-900 mb-2 text-sm">
                             Sample Code
                           </h4>
                           <pre className="bg-gray-900 text-gray-100 rounded-lg p-3 text-sm overflow-x-auto">
                             <code>{question.codeSnippet}</code>
                           </pre>
+                        </div> */}
+
+                        <div className="pt-2">
+                          <h4 className="font-semibold text-gray-900 mb-2 text-sm">
+                            Raw Excel Data (Debug)
+                          </h4>
+                          <div className="bg-gray-800 text-gray-300 rounded-lg p-3 text-xs overflow-x-auto">
+                            <pre>
+                              {JSON.stringify(question.rawData, null, 2)}
+                            </pre>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -974,12 +1269,20 @@ export default function TestFileView() {
                 key={idx}
                 className="bg-white rounded-2xl shadow-sm border border-gray-200 hover:shadow-md transition-all duration-300 overflow-hidden"
               >
-                {/* Topic Header */}
-                <button
+                {/* Topic Header - Changed from button to div with onClick */}
+                <div
                   onClick={() =>
                     setOpenAccordion(openAccordion === idx ? null : idx)
                   }
-                  className="w-full flex justify-between items-center p-4 sm:p-6 hover:bg-gray-50 transition-colors duration-200"
+                  className="w-full flex justify-between items-center p-4 sm:p-6 hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setOpenAccordion(openAccordion === idx ? null : idx);
+                    }
+                  }}
                 >
                   <div className="flex items-center space-x-3 sm:space-x-4">
                     <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
@@ -1004,7 +1307,7 @@ export default function TestFileView() {
                       <ChevronDown className="w-5 h-5 text-gray-400" />
                     )}
                   </div>
-                </button>
+                </div>
 
                 {/* Questions List */}
                 {openAccordion === idx && (
@@ -1015,9 +1318,18 @@ export default function TestFileView() {
                           key={question.id}
                           className="bg-white rounded-lg sm:rounded-xl border border-gray-200 hover:border-blue-300 transition-all duration-200 overflow-hidden"
                         >
-                          <button
+                          {/* Question Header - Changed from button to div with onClick */}
+                          <div
                             onClick={() => toggleQuestion(question.id)}
-                            className="w-full flex items-center justify-between p-4 sm:p-6 text-left hover:bg-gray-50 transition-colors duration-200"
+                            className="w-full flex items-center justify-between p-4 sm:p-6 text-left hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                toggleQuestion(question.id);
+                              }
+                            }}
                           >
                             <div className="flex items-start space-x-3 sm:space-x-4 flex-1">
                               <div className="flex-shrink-0">
@@ -1060,6 +1372,11 @@ export default function TestFileView() {
                                   toggleCompletion(question.id);
                                 }}
                                 className="flex-shrink-0"
+                                aria-label={
+                                  completedQuestions[question.id]
+                                    ? "Mark as incomplete"
+                                    : "Mark as complete"
+                                }
                               >
                                 {completedQuestions[question.id] ? (
                                   <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" />
@@ -1073,7 +1390,7 @@ export default function TestFileView() {
                                 <ChevronDown className="w-5 h-5 text-gray-400" />
                               )}
                             </div>
-                          </button>
+                          </div>
 
                           {/* Expanded Content */}
                           {expandedQuestions[question.id] && (
@@ -1107,14 +1424,6 @@ export default function TestFileView() {
                                     </span>
                                   </div>
                                   <div className="flex items-center gap-2">
-                                    {/* <button
-                                      onClick={() =>
-                                        setSelectedQuestion(question)
-                                      }
-                                      className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors text-sm sm:text-base"
-                                    >
-                                      Start Solving
-                                    </button> */}
                                     <button
                                       className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
                                       aria-label="More options"
@@ -1262,14 +1571,6 @@ export default function TestFileView() {
                     <Download className="w-4 h-4 inline mr-2" />
                     Save
                   </button>
-                  {/* <button
-                    onClick={() => {
-                      // Handle solve/run functionality
-                    }}
-                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-medium hover:shadow-lg transition-shadow"
-                  >
-                    Solve Now
-                  </button> */}
                 </div>
               </div>
             </div>

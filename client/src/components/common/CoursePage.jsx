@@ -48,6 +48,8 @@ export default function CoursePage() {
         const testRes = await fetch(
           `${serverURL}/api/test/testuploads?courseTitle=${courseTitle}`
         );
+        // console.log("Hello->", testRes);
+
         const testData = await testRes.json();
         // console.log(testData);
 

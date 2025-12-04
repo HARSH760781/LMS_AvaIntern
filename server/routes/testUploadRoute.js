@@ -46,7 +46,7 @@ router.get("/testuploads", async (req, res) => {
 router.get("/single/:courseTitle/:testId", async (req, res) => {
   try {
     const { courseTitle, testId } = req.params;
-    console.log(courseTitle, testId);
+    // console.log(courseTitle, testId);
 
     const courseDoc = await TestUpload.findOne({
       courseTitle: courseTitle.trim(),
@@ -58,7 +58,7 @@ router.get("/single/:courseTitle/:testId", async (req, res) => {
     const test = courseDoc.tests.id(testId);
     if (!test) return res.status(404).json({ message: "Test not found" });
 
-    console.log("test", test);
+    // console.log("test", test);
 
     return res.json(test);
   } catch (error) {
