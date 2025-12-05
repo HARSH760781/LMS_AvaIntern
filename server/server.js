@@ -36,8 +36,14 @@ app.use(
     credentials: true,
   })
 );
-// Secure headers
-app.use(helmet());
+
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false, // allow images from other origins
+    crossOriginOpenerPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
 // Prevent XSS attacks
 app.use(xss());
