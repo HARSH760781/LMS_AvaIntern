@@ -27,38 +27,38 @@ const app = express();
 
 app.use(
   cors({
-    origin: [
-      "https://avainternlms.in",
-      "https://www.avainternlms.in",
-      "https://lms-avaintern.onrender.com",
-    ],
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    credentials: true,
+    // origin: [
+    //   "https://avainternlms.in",
+    //   "https://www.avainternlms.in",
+    //   "https://lms-avaintern.onrender.com",
+    // ],
+    // methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    // credentials: true,
   })
 );
 
-app.use(
-  helmet({
-    crossOriginResourcePolicy: false, // allow images from other origins
-    crossOriginOpenerPolicy: false,
-    crossOriginEmbedderPolicy: false,
-  })
-);
+// app.use(
+//   helmet({
+//     crossOriginResourcePolicy: false, // allow images from other origins
+//     crossOriginOpenerPolicy: false,
+//     crossOriginEmbedderPolicy: false,
+//   })
+// );
 
 // Prevent XSS attacks
-app.use(xss());
-app.use(mongoSanitize());
+// app.use(xss());
+// app.use(mongoSanitize());
 
 // Prevent HTTP parameter pollution
-app.use(hpp());
-
+// app.use(hpp());
+//
 // Rate limiting (100 requests / 15 min per IP)
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: "Too many requests, try again later",
-});
-app.use(limiter);
+// const limiter = rateLimit({
+//   windowMs: 15 * 60 * 1000,
+//   max: 100,
+//   message: "Too many requests, try again later",
+// });
+// app.use(limiter);
 
 app.use(express.json());
 

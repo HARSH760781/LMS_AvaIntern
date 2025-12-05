@@ -22,7 +22,7 @@ const Navbar = () => {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-
+  const [imageError, setImageError] = useState(false);
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
   const fullName = localStorage.getItem("fullName");
@@ -62,6 +62,18 @@ const Navbar = () => {
 
   const handleSwitchToLMS = () => {
     window.open("https://app.avainternlms.in/", "_blank");
+  };
+  // Extract initials from fullName
+  const getInitials = (name) => {
+    if (!name) return "?";
+
+    const parts = name.trim().split(" ");
+
+    if (parts.length === 1) {
+      return parts[0][0].toUpperCase();
+    }
+
+    return (parts[0][0] + parts[1][0]).toUpperCase();
   };
 
   return (
@@ -111,11 +123,18 @@ const Navbar = () => {
               onMouseLeave={() => setShowProfileDropdown(false)}
             >
               <button className="flex items-center space-x-2 px-4 py-2 hover:bg-blue-50 rounded-lg transition-colors">
-                <img
-                  src={`${serverURL}/uploads/${profileImage}`}
-                  className="w-8 h-8 rounded-full object-fill"
-                  alt="profile"
-                />
+                {!imageError && profileImage ? (
+                  <img
+                    src={`${serverURL}/uploads/${profileImage}`}
+                    onError={() => setImageError(true)}
+                    className="w-9 h-9 rounded-full object-cover border"
+                    alt="profile"
+                  />
+                ) : (
+                  <div className="w-9 h-9 bg-blue-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
+                    {getInitials(fullName)}
+                  </div>
+                )}
                 <ChevronDown className="w-4 h-4 text-gray-500" />
               </button>
 
