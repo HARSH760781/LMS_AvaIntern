@@ -168,60 +168,161 @@ function solution(input) {
     );
   };
 
-  // Format Excel data into questions
   const formatExcelData = (rawData) => {
     if (!rawData || rawData.length === 0) {
+      // console.log("No raw data provided to formatExcelData");
       return [];
     }
 
+    // console.log("=== FORMATTING EXCEL DATA ===");
+    // console.log("Raw data sample:", rawData[0]);
+    // console.log("All column names:", Object.keys(rawData[0]));
+
     return rawData.map((row, index) => {
-      // Try to detect column names
+      // console.log(`\n--- Processing row ${index + 1} ---`);
+      // console.log("Row data:", row);
+
       const columnNames = Object.keys(row);
+      // console.log("Available columns in this row:", columnNames);
 
-      // Find program/title column
+      // Find program/title column - more flexible approach
       let program = "";
-      if (columnNames.includes("Program")) program = row["Program"];
-      else if (columnNames.includes("Problem")) program = row["Problem"];
-      else if (columnNames.includes("Question")) program = row["Question"];
-      else if (columnNames.includes("Title")) program = row["Title"];
-      else if (columnNames.includes("Name")) program = row["Name"];
-      else program = `Problem ${index + 1}`;
 
-      // Find topic column
+      // Common column names for program/title
+      const programColumns = [
+        "Program",
+        "Problem",
+        "Question",
+        "Title",
+        "Name",
+        "Challenge",
+        "Task",
+        "Exercise",
+        "Problem Name",
+        "Program Name",
+      ];
+
+      for (const col of programColumns) {
+        if (columnNames.includes(col) && row[col]) {
+          program = String(row[col]).trim();
+          // console.log(`Found program in column "${col}": ${program}`);
+          break;
+        }
+      }
+
+      // If still no program, try to use the first non-empty column
+      if (!program) {
+        for (const col of columnNames) {
+          if (row[col] && String(row[col]).trim()) {
+            program = String(row[col]).trim();
+            // console.log(
+            //   `Using first non-empty column "${col}" as program: ${program}`
+            // );
+            break;
+          }
+        }
+      }
+
+      // Fallback
+      if (!program) {
+        program = `Problem ${index + 1}`;
+        // console.log(`No program name found, using fallback: ${program}`);
+      }
+
+      // Find topic
       let topic = "";
-      if (columnNames.includes("Topic")) topic = row["Topic"];
-      else if (columnNames.includes("Category")) topic = row["Category"];
-      else if (columnNames.includes("Type")) topic = row["Type"];
-      else topic = "General";
+      const topicColumns = [
+        "Topic",
+        "Category",
+        "Type",
+        "Section",
+        "Chapter",
+        "Domain",
+      ];
+      for (const col of topicColumns) {
+        if (columnNames.includes(col) && row[col]) {
+          topic = String(row[col]).trim();
+          // console.log(`Found topic in column "${col}": ${topic}`);
+          break;
+        }
+      }
+      if (!topic) {
+        topic = "General";
+        // console.log(`No topic found, using default: ${topic}`);
+      }
 
-      // Find difficulty column
+      // Find difficulty
       let difficulty = "";
-      if (columnNames.includes("Difficulty")) difficulty = row["Difficulty"];
-      else if (columnNames.includes("Level")) difficulty = row["Level"];
-      else difficulty = "Medium";
+      const difficultyColumns = [
+        "Difficulty",
+        "Level",
+        "Complexity",
+        "Hardness",
+      ];
+      for (const col of difficultyColumns) {
+        if (columnNames.includes(col) && row[col]) {
+          difficulty = String(row[col]).trim();
+          // console.log(`Found difficulty in column "${col}": ${difficulty}`);
+          break;
+        }
+      }
+      if (!difficulty) {
+        difficulty = "Medium";
+        // console.log(`No difficulty found, using default: ${difficulty}`);
+      }
 
-      // Find description column
+      // Find description
       let description = "";
-      if (columnNames.includes("Description")) description = row["Description"];
-      else if (columnNames.includes("Problem Statement"))
-        description = row["Problem Statement"];
-      else if (columnNames.includes("Question Description"))
-        description = row["Question Description"];
-      else description = getProgramDescription(program);
+      const descColumns = [
+        "Description",
+        "Problem Statement",
+        "Question Description",
+        "Task",
+        "Instructions",
+        "Statement",
+        "Problem",
+      ];
 
-      return {
+      for (const col of descColumns) {
+        if (columnNames.includes(col) && row[col]) {
+          description = String(row[col]).trim();
+          // console.log(
+          //   `Found description in column "${col}":`,
+          //   description.substring(0, 50) + "..."
+          // );
+          break;
+        }
+      }
+
+      if (!description) {
+        description = getProgramDescription(program);
+        // console.log(
+        //   `No description found, using generated:`,
+        //   description.substring(0, 50) + "..."
+        // );
+      }
+
+      const question = {
         id: index + 1,
         program: program,
         topic: topic,
         difficulty: difficulty,
         description: description,
         timeEstimate: getTimeEstimate(difficulty),
-        popularity: Math.floor(Math.random() * 30) + 70, // Random 70-100%
+        popularity: Math.floor(Math.random() * 30) + 70,
         attempts: Math.floor(Math.random() * 500) + 100,
         lastAttempted: getRandomDate(),
         codeSnippet: generateCodeSnippet(program),
-        rawData: row,
+        rawData: row, // Keep original for debugging
       };
+
+      // console.log(`Formatted question ${index + 1}:`, {
+      //   program: question.program,
+      //   topic: question.topic,
+      //   difficulty: question.difficulty,
+      // });
+
+      return question;
     });
   };
 
@@ -244,53 +345,95 @@ function solution(input) {
     const fetchExcel = async () => {
       try {
         setLoading(true);
+        // console.log("Fetching file:", { fileId, courseTitle });
 
-        const url = `${serverURL}/api/programs/file/${fileId}?courseTitle=${encodeURIComponent(
-          courseTitle
-        )}`;
+        // Use the simpler route: /file/:fileId?courseTitle=...
+        const fileRes = await fetch(
+          `${serverURL}/api/programs/file/${fileId}?courseTitle=${encodeURIComponent(
+            courseTitle
+          )}`
+        );
 
-        const res = await fetch(url);
-
-        if (!res.ok) {
-          const contentType = res.headers.get("content-type");
-          if (contentType && contentType.includes("application/json")) {
-            const errorData = await res.json();
-            console.error("Error response from server:", errorData);
-            throw new Error(errorData.message || `Server error: ${res.status}`);
-          } else {
-            const errorText = await res.text();
-            throw new Error(
-              `Failed to fetch file: ${res.status} ${res.statusText}`
-            );
-          }
+        if (!fileRes.ok) {
+          const errorText = await fileRes.text();
+          throw new Error(
+            `Failed to fetch file: ${fileRes.status} - ${errorText}`
+          );
         }
 
-        const fileData = await res.blob();
+        // Get the file as blob
+        const fileData = await fileRes.blob();
+        // console.log("File blob received:", {
+        //   size: fileData.size,
+        //   type: fileData.type,
+        // });
 
         if (fileData.size === 0) {
           throw new Error("Received empty file from server");
         }
 
+        // Read the Excel file
         const buffer = await fileData.arrayBuffer();
+        // console.log("ArrayBuffer size:", buffer.byteLength);
+        //
         const workbook = XLSX.read(buffer, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-        const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+        // console.log("Workbook loaded:", {
+        //   sheetNames: workbook.SheetNames,
+        //   sheetCount: workbook.SheetNames.length,
+        // });
 
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+
+        // Get raw data from Excel
+        const rawData = XLSX.utils.sheet_to_json(worksheet);
+        // console.log("=== RAW EXCEL DATA ===");
+        // console.log("Total rows:", rawData.length);
+
+        if (rawData.length > 0) {
+          // console.log("Column names:", Object.keys(rawData[0]));
+          // console.log("Sample row:", rawData[0]);
+        } else {
+          // console.warn("No data found in Excel sheet!");
+          toast.error("Excel file is empty or has no data", {
+            duration: 4000,
+          });
+        }
+
+        // Format the data
         const formattedQuestions = formatExcelData(rawData);
+        //  /   console.log("Formatted questions count:", formattedQuestions.length);
+
+        if (formattedQuestions.length === 0) {
+          // console.warn("No questions were formatted!");
+          toast.error(
+            "Could not parse questions from Excel. Check file format.",
+            {
+              duration: 5000,
+            }
+          );
+        }
+
         setQuestions(formattedQuestions);
 
+        // Group questions by topic
         const grouped = groupQuestionsByTopic(formattedQuestions);
+        // console.log("Grouped by topic:", Object.keys(grouped).length, "topics");
         setGroupedQuestions(grouped);
 
+        // Mark first few as completed for demo
         const initialCompleted = {};
-        formattedQuestions.slice(0, 3).forEach((q, idx) => {
-          if (idx % 3 === 0) {
-            initialCompleted[q.id] = true;
-          }
-        });
+        formattedQuestions
+          .slice(0, Math.min(3, formattedQuestions.length))
+          .forEach((q, idx) => {
+            if (idx % 3 === 0) {
+              initialCompleted[q.id] = true;
+            }
+          });
         setCompletedQuestions(initialCompleted);
-      } catch (err) {
-        toast.error(`Failed to load file: ${err.message}`, {
+      } catch (error) {
+        // console.error("Error in fetchExcel:", error);
+        toast.error(`Failed to load file: ${error.message}`, {
           duration: 5000,
           position: "top-right",
           style: {
@@ -304,6 +447,7 @@ function solution(input) {
         });
       } finally {
         setLoading(false);
+        // console.log("=== FETCH COMPLETE ===");
       }
     };
 
@@ -358,6 +502,7 @@ function solution(input) {
     activeTab,
     completedQuestions,
   ]);
+  // console.log(filteredGroupedQuestions);
 
   const getDifficultyColor = (difficulty) => {
     const colors = {

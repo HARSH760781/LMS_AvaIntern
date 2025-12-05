@@ -22,11 +22,15 @@ export const uploadTestFile = async (req, res) => {
     const normalizedCourseTitle = courseTitle.trim();
     const normalizedTestName = testName.trim();
 
-    // FILE DATA
+    // FILE DATA - UPDATED FOR MONGODB
     const fileSubdoc = {
-      filename: req.file.filename,
+      filename: `${Date.now()}-${req.file.originalname.replace(/\s+/g, "_")}`,
       originalName: req.file.originalname,
-      path: req.file.path,
+      // Store file content in MongoDB
+      fileData: req.file.buffer.toString("base64"), // Convert buffer to Base64
+      contentType:
+        req.file.mimetype ||
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       size: req.file.size,
       uploadedBy: userId,
       version: 1,
@@ -50,6 +54,7 @@ export const uploadTestFile = async (req, res) => {
       createdBy: userId,
       status: "active",
     };
+
     if (!courseDoc) {
       // Create new course with first test
       courseDoc = new TestUpload({
@@ -70,11 +75,23 @@ export const uploadTestFile = async (req, res) => {
       return res.status(201).json({
         message: "Course created and test uploaded successfully",
         courseId: courseDoc._id,
-        test: courseDoc.tests[0],
+        test: {
+          _id: courseDoc.tests[0]._id,
+          testName: courseDoc.tests[0].testName,
+          subject: courseDoc.tests[0].subject,
+          topic: courseDoc.tests[0].topic,
+          duration: courseDoc.tests[0].duration,
+          file: {
+            filename: courseDoc.tests[0].file.filename,
+            originalName: courseDoc.tests[0].file.originalName,
+            size: courseDoc.tests[0].file.size,
+            contentType: courseDoc.tests[0].file.contentType,
+          },
+        },
       });
     }
 
-    // COURSE EXISTS → ALWAYS ADD NEW TEST (NO REPLACING)
+    // COURSE EXISTS → ALWAYS ADD NEW TEST
     courseDoc.tests.push(newTest);
     courseDoc.currentVersion = (courseDoc.currentVersion || 0) + 1;
     courseDoc.lastUpdatedBy = userId;

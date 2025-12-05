@@ -86,6 +86,8 @@ const TestEnvironment = () => {
   }, [testId]);
 
   // ----------------------- Process Excel -----------------------
+  // In TestEnvironment.jsx, update the processExcelFile function:
+
   const processExcelFile = async (fileData) => {
     try {
       if (!fileData || !fileData.filename) {
@@ -93,20 +95,50 @@ const TestEnvironment = () => {
         setQuestions([]);
         return;
       }
-      // console.log(fileData);
 
-      const res = await fetch(`${serverURL}/uploadTest/${fileData.filename}`);
-      if (!res.ok)
+      // console.log("Fetching file for test:", testId, "course:", courseTitle);
+
+      // Try multiple endpoints
+      const endpoints = [
+        // MongoDB endpoint
+        `${serverURL}/api/test/file/${courseTitle}/${testId}`,
+        // Old disk endpoint as fallback
+        `${serverURL}/uploadTest/${fileData.filename}`,
+      ];
+
+      let res = null;
+      let errorMessages = [];
+
+      for (const endpoint of endpoints) {
+        try {
+          // console.log("Trying endpoint:", endpoint);
+          res = await fetch(endpoint);
+          if (res.ok) {
+            // console.log("Success with endpoint:", endpoint);
+            break;
+          } else {
+            errorMessages.push(`${endpoint}: ${res.status} ${res.statusText}`);
+          }
+        } catch (fetchError) {
+          errorMessages.push(`${endpoint}: ${fetchError.message}`);
+        }
+      }
+
+      if (!res || !res.ok) {
         throw new Error(
-          `Failed to fetch file: ${res.status} - ${res.statusText}`
+          `Could not fetch file. Tried:\n${errorMessages.join("\n")}`
         );
+      }
 
       const blob = await res.blob();
+      // console.log("File blob received:", { size: blob.size, type: blob.type });
+
       const arrayBuffer = await blob.arrayBuffer();
       const workbook = XLSX.read(arrayBuffer, { type: "array" });
 
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const json = XLSX.utils.sheet_to_json(sheet);
+      // console.log("Excel rows found:", json.length);
 
       const formatted = json
         .map((row, index) => ({
@@ -123,14 +155,14 @@ const TestEnvironment = () => {
         }))
         .filter((q) => q.options.length >= 2);
 
+      // console.log("Questions formatted:", formatted.length);
       setQuestions(formatted);
     } catch (err) {
-      console.error(err);
-      setError(err.message);
+      // console.error("Process Excel error:", err);
+      setError(`Failed to process Excel: ${err.message}`);
       setQuestions([]);
     }
   };
-
   // ----------------------- Timer -----------------------
   useEffect(() => {
     if (!started || loading || timeLeft <= 0) return;

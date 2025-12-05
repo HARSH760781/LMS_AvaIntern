@@ -1,9 +1,12 @@
+// models/TestUpload.js
 import mongoose from "mongoose";
 
 const fileSchema = new mongoose.Schema({
   filename: { type: String, required: true },
   originalName: { type: String, required: true },
-  path: { type: String, required: true },
+  // CHANGED: Store file data as Base64 instead of path
+  fileData: { type: String, required: true }, // Base64 encoded file
+  contentType: { type: String, required: true }, // MIME type
   size: { type: Number, required: true },
   uploadDate: { type: Date, default: Date.now },
   uploadedBy: {
@@ -29,7 +32,7 @@ const testSchema = new mongoose.Schema({
   topic: { type: String, required: true, trim: true },
   totalQuestion: { type: Number, default: 0 },
   duration: { type: Number, required: true },
-  file: fileSchema, // ONE file per test
+  file: fileSchema, // ONE file per test (now stored in MongoDB)
   version: { type: Number, default: 1 },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
