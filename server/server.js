@@ -2,6 +2,13 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import dotenv from "dotenv";
+
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import xss from "xss-clean";
+import mongoSanitize from "express-mongo-sanitize";
+import hpp from "hpp";
+
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/users.js";
@@ -17,7 +24,36 @@ dotenv.config();
 connectDB();
 
 const app = express();
-app.use(cors());
+
+app.use(
+  cors({
+    origin: [
+      "https://avainternlms.in",
+      "https://www.avainternlms.in",
+      "https://lms-avaintern.onrender.com",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    credentials: true,
+  })
+);
+// Secure headers
+app.use(helmet());
+
+// Prevent XSS attacks
+app.use(xss());
+app.use(mongoSanitize());
+
+// Prevent HTTP parameter pollution
+app.use(hpp());
+
+// Rate limiting (100 requests / 15 min per IP)
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: "Too many requests, try again later",
+});
+app.use(limiter);
+
 app.use(express.json());
 
 // Serve uploaded images
