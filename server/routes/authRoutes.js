@@ -5,7 +5,7 @@ import {
   forgotPassword,
   resetPassword,
 } from "../controllers/authController.js";
-import upload from "../middleware/upload.js";
+import upload from "../middleware/uploadMiddleware.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 import { logoutUser } from "../controllers/authController.js";
 

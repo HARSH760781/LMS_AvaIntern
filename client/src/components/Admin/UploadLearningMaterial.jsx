@@ -16,7 +16,6 @@ const UploadLearningMaterial = () => {
   const [topics, setTopics] = useState([
     {
       topicTitle: "",
-      topicKey: "",
       subTopics: [{ subTopicTitle: "", files: [] }],
     },
   ]);
@@ -90,7 +89,6 @@ const UploadLearningMaterial = () => {
       ...topics,
       {
         topicTitle: "",
-        topicKey: "",
         subTopics: [{ subTopicTitle: "", files: [] }],
       },
     ];
@@ -129,39 +127,89 @@ const UploadLearningMaterial = () => {
   /* ---------- Submit ---------- */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!courseTitle) return toast.error("Course title is required!");
+    if (!courseTitle) {
+      toast.error("Course title is required!");
+      return;
+    }
 
     setLoading(true);
-    const formData = new FormData();
-    formData.append("courseTitle", courseTitle);
-    formData.append("category", selectedCategory);
-
-    const topicsData = topics.map((topic) => ({
-      topicTitle: topic.topicTitle,
-      topicKey: topic.topicKey,
-      subTopics: topic.subTopics.map((sub) => ({
-        subTopicTitle: sub.subTopicTitle,
-        fileNames: sub.files.map((f) => f.name),
-      })),
-    }));
-    formData.append("topics", JSON.stringify(topicsData));
-
-    topics.forEach((topic) =>
-      topic.subTopics.forEach((sub) =>
-        sub.files.forEach((file) => formData.append("files", file))
-      )
-    );
 
     try {
+      // Create FormData
+      const formData = new FormData();
+      formData.append("courseTitle", courseTitle);
+
+      // Prepare topics data
+      const topicsData = topics.map((topic) => ({
+        topicTitle: topic.topicTitle,
+        subTopics: topic.subTopics.map((sub) => ({
+          subTopicTitle: sub.subTopicTitle,
+          fileNames: sub.files.map((f) => f.name),
+        })),
+      }));
+
+      formData.append("topics", JSON.stringify(topicsData));
+
+      // Append all files
+      let fileCount = 0;
+      topics.forEach((topic) =>
+        topic.subTopics.forEach((sub) =>
+          sub.files.forEach((file) => {
+            formData.append("files", file);
+            fileCount++;
+          })
+        )
+      );
+
+      // DEBUG: Log what's being sent
+      console.log("=== FRONTEND DEBUG ===");
+      console.log("courseTitle:", courseTitle);
+      console.log("topicsData:", topicsData);
+      console.log("Total files to upload:", fileCount);
+
+      // Log FormData entries
+      console.log("FormData entries:");
+      for (let pair of formData.entries()) {
+        if (pair[0] === "files") {
+          console.log(pair[0], pair[1].name, pair[1].type, pair[1].size);
+        } else {
+          console.log(pair[0], pair[1]);
+        }
+      }
+
+      // Get token
       const token = localStorage.getItem("token");
+      console.log("Token exists:", !!token);
+
+      // Send request
       const res = await fetch(`${serverURL}/api/learning-material`, {
         method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
         body: formData,
       });
 
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.message || "Upload failed");
+      console.log("Response status:", res.status);
+
+      // Get response text
+      const responseText = await res.text();
+      console.log("Response text:", responseText);
+
+      let result;
+      try {
+        result = JSON.parse(responseText);
+        console.log("Parsed response:", result);
+      } catch (parseError) {
+        console.error("Failed to parse response as JSON:", responseText);
+        throw new Error("Invalid server response");
+      }
+
+      if (!res.ok) {
+        throw new Error(
+          result.message || result.error || `Upload failed: ${res.status}`
+        );
+      }
 
       toast.success("Learning material uploaded successfully!");
 
@@ -171,17 +219,47 @@ const UploadLearningMaterial = () => {
       setTopics([
         {
           topicTitle: "",
-          topicKey: "",
           subTopics: [{ subTopicTitle: "", files: [] }],
         },
       ]);
       setExpandedTopics([0]);
-      if (e.target) e.target.reset();
     } catch (err) {
+      console.error("Upload error details:", err);
       toast.error(err.message || "Upload failed!");
     } finally {
       setLoading(false);
     }
+  };
+
+  /* ---------- Debug Function (Optional) ---------- */
+  const debugFormData = () => {
+    const formData = new FormData();
+    formData.append("courseTitle", courseTitle);
+
+    const topicsData = topics.map((topic) => ({
+      topicTitle: topic.topicTitle,
+      subTopics: topic.subTopics.map((sub) => ({
+        subTopicTitle: sub.subTopicTitle,
+        fileNames: sub.files.map((f) => f.name),
+      })),
+    }));
+
+    formData.append("topics", JSON.stringify(topicsData));
+
+    topics.forEach((topic) =>
+      topic.subTopics.forEach((sub) =>
+        sub.files.forEach((file) => {
+          formData.append("files", file);
+        })
+      )
+    );
+
+    console.log("FormData entries:");
+    for (let pair of formData.entries()) {
+      console.log(pair[0], pair[1]);
+    }
+
+    console.log("Topics data:", topicsData);
   };
 
   /* ---------- Render ---------- */
@@ -202,6 +280,14 @@ const UploadLearningMaterial = () => {
                 Create structured courses — topics, sub-topics and PDF materials
               </p>
             </div>
+            {/* Debug button (remove in production) */}
+            <button
+              type="button"
+              onClick={debugFormData}
+              className="ml-auto text-xs bg-gray-800 text-white px-3 py-1 rounded-lg"
+            >
+              Debug
+            </button>
           </div>
         </div>
 
@@ -301,7 +387,12 @@ const UploadLearningMaterial = () => {
                           {topic.topicTitle || `Topic ${tIndex + 1}`}
                         </h4>
                         <p className="text-xs text-gray-400 truncate">
-                          {topic.topicKey || "No key provided"}
+                          {topic.subTopics.length} sub-topic(s),{" "}
+                          {topic.subTopics.reduce(
+                            (sum, sub) => sum + sub.files.length,
+                            0
+                          )}{" "}
+                          file(s)
                         </p>
                       </div>
                     </button>
@@ -323,8 +414,8 @@ const UploadLearningMaterial = () => {
                   {/* content */}
                   {expandedTopics.includes(tIndex) && (
                     <div className="p-3 sm:p-4 space-y-4">
-                      {/* topic inputs */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {/* topic inputs - REMOVED topicKey field */}
+                      <div className="grid grid-cols-1 gap-3">
                         <input
                           type="text"
                           placeholder="Topic Title"
@@ -333,20 +424,6 @@ const UploadLearningMaterial = () => {
                             handleTopicChange(
                               tIndex,
                               "topicTitle",
-                              e.target.value
-                            )
-                          }
-                          required
-                          className="w-full p-3 rounded-lg bg-gray-900 border border-gray-600 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Topic Key"
-                          value={topic.topicKey}
-                          onChange={(e) =>
-                            handleTopicChange(
-                              tIndex,
-                              "topicKey",
                               e.target.value
                             )
                           }
@@ -445,7 +522,7 @@ const UploadLearningMaterial = () => {
                                   />
                                 </label>
 
-                                {/* file list - horizontal scroll on very small screens */}
+                                {/* file list */}
                                 {sub.files.length > 0 && (
                                   <div className="mt-3 space-y-2">
                                     <div className="flex gap-2 overflow-x-auto py-1">

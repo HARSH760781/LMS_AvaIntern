@@ -25,17 +25,7 @@ connectDB();
 
 const app = express();
 
-app.use(
-  cors({
-    // origin: [
-    //   "https://avainternlms.in",
-    //   "https://www.avainternlms.in",
-    //   "https://lms-avaintern.onrender.com",
-    // ],
-    // methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    // credentials: true,
-  })
-);
+app.use(cors());
 
 // app.use(
 //   helmet({

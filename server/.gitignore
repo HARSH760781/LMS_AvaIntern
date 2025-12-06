@@ -2,3 +2,5 @@
 .# Environment variables
 .env
 .env.*      # optional: ignores .env.development, .env.production, etc.
+.env.local
+config/google-service-account1.json

@@ -69,9 +69,12 @@ export default function CoursePage() {
   };
 
   const handlePdfView = (material) => {
-    // console.log(material);
-    if (material?.filePath) setCurrentMaterial(material);
-    else alert("File not available.");
+    if (material?.fileUrl) {
+      setCurrentMaterial(material);
+    } else {
+      alert("File not available. Missing fileUrl.");
+      console.error("Material missing fileUrl:", material);
+    }
   };
 
   const totalMaterials = topics.reduce(
@@ -564,7 +567,6 @@ export default function CoursePage() {
         <PdfViewer
           material={currentMaterial}
           onClose={() => setCurrentMaterial(null)}
-          serverURL={serverURL}
         />
       )}
     </div>
